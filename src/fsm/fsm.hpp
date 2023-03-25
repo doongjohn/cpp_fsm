@@ -94,7 +94,7 @@ public:
   std::string currentBinding;
   std::string previousBinding;
 
-  bool bForceTransition = false;
+  bool bReenterTransition = false;
   bool bSkipWaiting = false;
   bool bIsWaitingForActionEnd = false;
 
@@ -121,7 +121,7 @@ public:
   auto Bind(std::string name, FsmAction<State> action) -> Fsm<T, State> *;
   auto Bind(std::string name, std::initializer_list<FsmAction<State>> actions) -> Fsm<T, State> *;
 
-  auto Force(std::string binding) -> std::string;
+  auto Reenter(std::string binding) -> std::string;
   auto SkipCurrent(std::string binding) -> std::string;
   auto SkipCurrent(FsmTransition *transition) -> FsmTransition *;
 
@@ -160,9 +160,8 @@ auto Fsm<T, State>::Bind(std::string name, std::initializer_list<FsmAction<State
 }
 
 template <typename T, typename State>
-auto Fsm<T, State>::Force(std::string binding) -> std::string {
-  bIsWaitingForActionEnd = false;
-  bSkipWaiting = true;
+auto Fsm<T, State>::Reenter(std::string binding) -> std::string {
+  bReenterTransition = true;
   return binding;
 }
 
@@ -271,8 +270,8 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       if (!actions.contains(nextBinding))
         assert_msg(false, "Unbound action: \"" + nextBinding + "\"");
 
-      if (bForceTransition || currentBinding != nextBinding) {
-        bForceTransition = false;
+      if (bReenterTransition || currentBinding != nextBinding) {
+        bReenterTransition = false;
 
         // std::cout << "[FSM] action exit: " << currentBinding << '\n';
         previousBinding = currentBinding;

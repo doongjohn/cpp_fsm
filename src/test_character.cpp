@@ -19,8 +19,6 @@ TestCharacter::TestCharacter() {
   auto tr1 = new LDJ::FsmTransition("tr1");
   auto tr2 = new LDJ::FsmTransition("tr2");
 
-  // TODO: test Force()
-
   // clang-format off
 
   (new (&fsm) LDJ::Fsm<Self *, State *>(this, tr1))
