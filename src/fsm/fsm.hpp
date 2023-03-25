@@ -26,9 +26,6 @@ public:
   // Copy constructor
   FsmAction(const FsmAction &other);
 
-  // Move constructor
-  FsmAction(FsmAction &&other);
-
   auto operator=(const FsmAction &other) -> FsmAction &;
 
   template <typename T>
@@ -78,10 +75,6 @@ FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::functio
 template <typename State>
 FsmAction<State>::FsmAction(const FsmAction &other)
     : state(other.state), extras(other.extras), fnIsEnded(other.fnIsEnded) {}
-
-template <typename State>
-FsmAction<State>::FsmAction(FsmAction &&other)
-    : state(std::move(other.state)), extras(std::move(other.extras)), fnIsEnded(other.fnIsEnded) {}
 
 template <typename State>
 auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
