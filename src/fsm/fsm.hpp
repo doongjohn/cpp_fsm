@@ -130,7 +130,7 @@ public:
 
   auto Force(std::string binding) -> std::string;
   auto SkipCurrent(std::string binding) -> std::string;
-  auto Skip(FsmTransition *transition) -> FsmTransition *;
+  auto SkipCurrent(FsmTransition *transition) -> FsmTransition *;
 
   auto FsmStart() -> void;
   auto FsmUpdate() -> void;
@@ -181,7 +181,7 @@ auto Fsm<T, State>::SkipCurrent(std::string binding) -> std::string {
 }
 
 template <typename T, typename State>
-auto Fsm<T, State>::Skip(FsmTransition *transition) -> FsmTransition * {
+auto Fsm<T, State>::SkipCurrent(FsmTransition *transition) -> FsmTransition * {
   bIsWaitingForActionEnd = false;
   bSkipWaiting = true;
   return transition;
