@@ -17,7 +17,6 @@ class TestCharacter {
   static State *stateWow;
   static State *statePow;
 
-  std::string name = "안유찬";
   bool bIsHit = false;
 
 public:

@@ -26,7 +26,7 @@ TestCharacter::TestCharacter() {
     ->Bind("hit", actionHello)
     ->Bind("hello", actionHello)
     ->Bind("wow", actionWow)
-    ->Bind("pow", actionWow)
+    ->Bind("pow", actionPow)
     ->Bind("combo", {combo1, combo2});
 
   tr1

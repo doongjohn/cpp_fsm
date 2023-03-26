@@ -5,13 +5,13 @@
 #include <iostream>
 
 void TestStateBase::OnEnter(TestCharacter *self) {
-  self->bIsHit = random_range(0, 1);
+  self->bIsHit = random_range(0, 2) == 0;
 }
 void TestStateBase::OnExit(TestCharacter *self) {}
 void TestStateBase::OnUpdate(TestCharacter *self) {}
 
 void TestExtra::OnEnter(TestCharacter *self) {
-  std::cout << self->name << '\n';
+  std::cout << "extra enter!\n";
 }
 void TestExtra::OnExit(TestCharacter *self) {}
 void TestExtra::OnUpdate(TestCharacter *self) {}
