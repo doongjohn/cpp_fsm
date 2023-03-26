@@ -21,7 +21,7 @@ class TestCharacter {
 
   std::string name = "John";
 
-  auto HitTransition() -> LDJ::FsmTransitionResult {
+  auto FsmTransitionHit() -> LDJ::FsmTransitionResult {
     if (bIsHit)
       return fsm.SkipCurrent("hit");
     return LDJ::FsmContinue;

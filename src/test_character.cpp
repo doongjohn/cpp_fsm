@@ -31,13 +31,13 @@ TestCharacter::TestCharacter() {
 
   tr1
     ->When("default", [] { return "hello"; })
-    ->WhenNot("hit", [this] { return HitTransition(); })
+    ->WhenNot("hit", [this] { return FsmTransitionHit(); })
     ->When("hit", [] { return "default"; })
     ->When("combo", [] { return "hello"; })
     ->When("hello", [=] { return tr2; });
 
   tr2
-    ->WhenNot("hit", [this] { return HitTransition(); })
+    ->WhenNot("hit", [this] { return FsmTransitionHit(); })
     ->When("hit", [=] { return tr1; })
     ->When("hello", [] { return random_range(0, 1) ? "wow" : "pow"; })
     ->When({"wow", "pow"}, [=] { return tr1->Do("combo"); });
