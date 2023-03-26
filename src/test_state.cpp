@@ -11,7 +11,7 @@ void TestStateBase::OnExit(TestCharacter *self) {}
 void TestStateBase::OnUpdate(TestCharacter *self) {}
 
 void TestExtra::OnEnter(TestCharacter *self) {
-  std::cout << "extra enter!\n";
+  std::cout << "Hello! My name is " << self->name << '\n';
 }
 void TestExtra::OnExit(TestCharacter *self) {}
 void TestExtra::OnUpdate(TestCharacter *self) {}

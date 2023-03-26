@@ -19,6 +19,8 @@ class TestCharacter {
 
   bool bIsHit = false;
 
+  std::string name = "John";
+
 public:
   LDJ::Fsm<Self *, State *> fsm;
   TestCharacter();
