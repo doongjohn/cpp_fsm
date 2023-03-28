@@ -12,11 +12,6 @@ class TestCharacter {
   friend TestStateBase;
   friend Extra;
 
-  static State *stateDefault;
-  static State *stateHello;
-  static State *stateWow;
-  static State *statePow;
-
   bool bIsHit = false;
 
   std::string name = "John";
@@ -29,5 +24,10 @@ class TestCharacter {
 
 public:
   LDJ::Fsm<Self *, State *> fsm;
+  static State *stateDefault;
+  static State *stateHello;
+  static State *stateWow;
+  static State *statePow;
+
   TestCharacter();
 };

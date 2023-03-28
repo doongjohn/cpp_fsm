@@ -1,5 +1,4 @@
 #include "fsm_transition.hpp"
-#include "fsm_assert.hpp"
 
 using namespace LDJ;
 
@@ -15,6 +14,11 @@ auto FsmTransition::When(std::initializer_list<std::string> bindings, std::funct
   transitions.emplace_back(MODE_MATCH, bindings, fnGetNext);
   return this;
 }
+auto FsmTransition::When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
+  -> FsmTransition * {
+  transitions.emplace_back(MODE_MATCH, bindings, fnGetNext);
+  return this;
+}
 auto FsmTransition::When(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition * {
   return When({binding}, fnGetNext);
 }
@@ -25,15 +29,20 @@ auto FsmTransition::WhenNot(std::initializer_list<std::string> bindings, std::fu
   transitions.emplace_back(MODE_NOT_MATCH, bindings, fnGetNext);
   return this;
 }
+auto FsmTransition::WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
+  -> FsmTransition * {
+  transitions.emplace_back(MODE_NOT_MATCH, bindings, fnGetNext);
+  return this;
+}
 auto FsmTransition::WhenNot(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition * {
-  return WhenNot({binding}, fnGetNext);
+  return WhenNot(std::vector{binding}, fnGetNext);
 }
 
 auto FsmTransition::RunTransitionLogic(std::string currentBinding) -> std::optional<FsmTransitionResult> {
   // do binding
-  if (doBinding != "") {
-    std::string result = doBinding;
-    doBinding = "";
+  if (immediateBinding != "") {
+    std::string result = immediateBinding;
+    immediateBinding = "";
     return result;
   }
 
@@ -60,12 +69,11 @@ auto FsmTransition::RunTransitionLogic(std::string currentBinding) -> std::optio
   if (nextFound)
     return nullptr;
 
-  // assert_msg(nextFound, "No transition is possible from the current binding. \"" + currentBinding + "\"");
   return std::nullopt;
 }
 
-auto FsmTransition::Do(std::string binding) -> FsmTransition * {
+auto FsmTransition::DoAction(std::string binding) -> FsmTransition * {
   // TODO: check if binding is possible
-  doBinding = binding;
+  immediateBinding = binding;
   return this;
 }

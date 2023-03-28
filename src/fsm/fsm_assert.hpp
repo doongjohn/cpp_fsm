@@ -6,9 +6,9 @@
 
 namespace LDJ {
 
-inline auto assert_msg(bool expr, std::string msg) -> void {
+inline auto fsm_assert_msg(bool expr, std::string msg) -> void {
   if (!expr)
-    std::cout << "Assertion failed: " << msg << '\n';
+    std::cout << "[FSM] Assertion failed: " << msg << '\n';
   assert(expr);
 }
 

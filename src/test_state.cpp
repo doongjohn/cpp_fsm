@@ -4,14 +4,14 @@
 
 #include <iostream>
 
-void TestStateBase::OnEnter(TestCharacter *self) {
-  self->bIsHit = random_range(0, 2) == 0;
+void TestStateBase::OnEnter(TestCharacter *owner) {
+  owner->bIsHit = random_range(0, 2) == 0;
 }
-void TestStateBase::OnExit(TestCharacter *self) {}
-void TestStateBase::OnUpdate(TestCharacter *self) {}
+void TestStateBase::OnExit(TestCharacter *owner) {}
+void TestStateBase::OnUpdate(TestCharacter *owner) {}
 
-void TestExtra::OnEnter(TestCharacter *self) {
-  std::cout << "Hello! My name is " << self->name << '\n';
+void TestExtra::OnEnter(TestCharacter *owner) {
+  std::cout << "Hello! My name is " << owner->name << '\n';
 }
-void TestExtra::OnExit(TestCharacter *self) {}
-void TestExtra::OnUpdate(TestCharacter *self) {}
+void TestExtra::OnExit(TestCharacter *owner) {}
+void TestExtra::OnUpdate(TestCharacter *owner) {}

@@ -1,0 +1,10 @@
+{
+    "diagnostics.globals": [
+        "TestCharacter",
+        "TestCharacterAction",
+        "TestCharacter_state_hello",
+        "FsmTransition",
+        "TestCharacterFsm"
+    ],
+    "workspace.checkThirdParty": false
+}

@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <utility>
 #include <variant>
+#include <iostream>
 
 namespace LDJ {
 
@@ -30,13 +31,24 @@ class FsmTransition {
     TransitionLogic(int mode, std::initializer_list<std::string> bindings,
                     std::function<FsmTransitionResult()> fnGetNext)
         : mode(mode), bindings(bindings), fnGetNext(std::move(fnGetNext)) {}
+
+    TransitionLogic(int mode, std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
+        : mode(mode), bindings(bindings.begin(), bindings.end()), fnGetNext(std::move(fnGetNext)) {}
   };
+
   std::string name;
+  std::string immediateBinding;
   std::vector<TransitionLogic> transitions;
-  std::string doBinding;
 
 public:
   FsmTransition(std::string name) : name(std::move(name)) {}
+
+  // Copy constructor
+  FsmTransition(const FsmTransition &other) {
+    name = other.name;
+    immediateBinding = other.immediateBinding;
+    transitions = other.transitions;
+  }
 
   inline auto GetName() -> std::string {
     return name;
@@ -48,18 +60,20 @@ public:
   // run on specified bindings
   auto When(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
     -> FsmTransition *;
+  auto When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
   auto When(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
 
   // run on not specified binding
   auto WhenNot(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
     -> FsmTransition *;
+  auto WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
   auto WhenNot(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
+
+  // TODO: comment
+  auto DoAction(std::string binding) -> FsmTransition *;
 
   // for internal use only
   auto RunTransitionLogic(std::string currentBinding) -> std::optional<FsmTransitionResult>;
-
-  // TODO: comment
-  auto Do(std::string binding) -> FsmTransition *;
 };
 
 } // namespace LDJ
