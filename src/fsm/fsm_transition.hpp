@@ -1,21 +1,19 @@
 #pragma once
 
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <variant>
-#include <iostream>
 
 namespace LDJ {
 
-class FsmTransition;
-using FsmTransitionResult = std::variant<std::string, FsmTransition *>;
-// - string     : next binding name
-// - Transition : next transition
-// - nullptr    : check bellow
-constexpr FsmTransition *FsmContinue = nullptr;
+using FsmTransitionResult = std::variant<std::string, class FsmTransition *>;
+constexpr class FsmTransition *FsmContinue = nullptr;
+//                string : transition to next binding
+//            Transition : transition to next transition
+// FsmContinue (nullptr) : continue run next transition logic
 
 class FsmTransition {
   static constexpr const int MODE_ANY = 0;
@@ -25,20 +23,20 @@ class FsmTransition {
   struct TransitionLogic {
     int mode;
     std::unordered_set<std::string> bindings;
-    std::function<FsmTransitionResult()> fnGetNext;
+    std::function<FsmTransitionResult()> fn_get_next;
 
   public:
     TransitionLogic(int mode, std::initializer_list<std::string> bindings,
-                    std::function<FsmTransitionResult()> fnGetNext)
-        : mode(mode), bindings(bindings), fnGetNext(std::move(fnGetNext)) {}
+                    std::function<FsmTransitionResult()> fn_get_next)
+        : mode(mode), bindings(bindings), fn_get_next(std::move(fn_get_next)) {}
 
-    TransitionLogic(int mode, std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
-        : mode(mode), bindings(bindings.begin(), bindings.end()), fnGetNext(std::move(fnGetNext)) {}
+    TransitionLogic(int mode, std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+        : mode(mode), bindings(bindings.begin(), bindings.end()), fn_get_next(std::move(fn_get_next)) {}
   };
 
   std::string name;
-  std::string immediateBinding;
-  std::vector<TransitionLogic> transitions;
+  std::string immediate_binding;
+  std::vector<TransitionLogic> transition_logics;
 
 public:
   FsmTransition(std::string name) : name(std::move(name)) {}
@@ -46,34 +44,34 @@ public:
   // Copy constructor
   FsmTransition(const FsmTransition &other) {
     name = other.name;
-    immediateBinding = other.immediateBinding;
-    transitions = other.transitions;
+    immediate_binding = other.immediate_binding;
+    transition_logics = other.transition_logics;
   }
 
   inline auto GetName() -> std::string {
     return name;
   }
 
-  // run on any bindings
-  auto WhenAny(std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
-
-  // run on specified bindings
-  auto When(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
-    -> FsmTransition *;
-  auto When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
-  auto When(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
-
-  // run on not specified binding
-  auto WhenNot(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext)
-    -> FsmTransition *;
-  auto WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
-  auto WhenNot(std::string binding, std::function<FsmTransitionResult()> fnGetNext) -> FsmTransition *;
-
-  // TODO: comment
+  // transition to specified action after transition
   auto DoAction(std::string binding) -> FsmTransition *;
 
+  // run on any bindings
+  auto WhenAny(std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+
+  // run on specified bindings
+  auto When(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+    -> FsmTransition *;
+  auto When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+  auto When(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+
+  // run on not specified binding
+  auto WhenNot(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+    -> FsmTransition *;
+  auto WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+  auto WhenNot(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+
   // for internal use only
-  auto RunTransitionLogic(std::string currentBinding) -> std::optional<FsmTransitionResult>;
+  auto RunTransitionLogic(std::string current_binding) -> std::optional<FsmTransitionResult>;
 };
 
 } // namespace LDJ

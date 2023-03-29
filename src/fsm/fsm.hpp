@@ -13,16 +13,22 @@
 
 namespace LDJ {
 
+enum FsmActionState {
+  Running,
+  Completed,
+  Break,
+};
+
 template <typename State>
 class FsmAction {
 public:
   State state;
   std::vector<State> extras;
-  std::function<bool()> fnIsEnded;
+  std::function<FsmActionState()> fn_result;
 
   FsmAction() = default;
-  FsmAction(State state, std::initializer_list<State> extras, std::function<bool()> fnIsEnded = nullptr);
-  FsmAction(State state, std::vector<State> extras, std::function<bool()> fnIsEnded = nullptr);
+  FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionState()> fn_result = nullptr);
+  FsmAction(State state, std::vector<State> extras, std::function<FsmActionState()> fn_result = nullptr);
 
   // Copy constructor
   FsmAction(const FsmAction &other);
@@ -70,23 +76,23 @@ public:
 };
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras, std::function<bool()> fnIsEnded)
-    : state(state), extras(std::move(extras)), fnIsEnded(std::move(fnIsEnded)) {}
+FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionState()> fn_result)
+    : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<bool()> fnIsEnded)
-    : state(state), extras(std::move(extras)), fnIsEnded(std::move(fnIsEnded)) {}
+FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionState()> fn_result)
+    : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
 
 template <typename State>
 FsmAction<State>::FsmAction(const FsmAction &other)
-    : state(other.state), extras(other.extras), fnIsEnded(other.fnIsEnded) {}
+    : state(other.state), extras(other.extras), fn_result(other.fn_result) {}
 
 template <typename State>
 auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
   if (this != &other) {
     state = other.state;
     extras = other.extras;
-    fnIsEnded = other.fnIsEnded;
+    fn_result = other.fn_result;
   }
   return *this;
 }
@@ -96,44 +102,47 @@ class Fsm {
 public:
   T owner;
   std::unordered_map<std::string, std::vector<FsmAction<State>>> actions;
-  std::string currentBinding;
-  std::string previousBinding;
+  std::string current_binding;
+  std::string previous_binding;
 
-  std::function<void()> fnErrOnExcessiveTransition = nullptr;
-  std::function<void()> fnErrOnNoPossibleTransition = nullptr;
+  std::function<void()> fn_err_excessive_transition = nullptr;
+  std::function<void()> fn_err_no_possible_transition = nullptr;
 
-private:
-  bool bReenterTransition = false;
-  bool bSkipWaiting = false;
-  bool bIsWaitingForActionEnd = false;
-
-  FsmAction<State> currentAction;
-  size_t currentActionListIndex = 0;
-  std::optional<std::span<FsmAction<State>>> currentActionList = std::nullopt;
-
-  FsmTransition *currentTransition = nullptr;
-
-  // NOTE: these are for debugging
-  const int maxTransitionCount = 50;
-  int curTransitionCount = 0;
-  std::list<std::string> transitionTrace;
-
-public:
   Fsm() = default;
-  Fsm(FsmTransition *initialTransition);
 
   // Copy constructor
   Fsm(const Fsm &other);
 
+  // private:
+  bool b_reenter = false;
+  bool b_skip_waiting = false;
+  bool b_is_waiting = false;
+
+  FsmAction<State> current_action;
+  size_t current_action_list_index = 0;
+  std::optional<std::span<FsmAction<State>>> current_action_list = std::nullopt;
+
+  std::vector<FsmTransition *> transitions;
+  FsmTransition *current_transition = nullptr;
+
+  // NOTE: these are for debugging
+  const int max_transition_count = 50;
+  int cur_transition_count = 0;
+  std::list<std::string> transition_trace;
+
+public:
   auto operator=(const Fsm &other) -> Fsm &;
 
   auto Init(T owner) -> void;
 
-  auto BindDefault(FsmAction<State> action) -> Fsm<T, State> *;
+  auto NewTransition(std::string name) -> FsmTransition *;
+
+  auto BindDefault(FsmTransition *default_transition, FsmAction<State> default_action) -> Fsm<T, State> *;
   auto Bind(std::string name, FsmAction<State> action) -> Fsm<T, State> *;
   auto Bind(std::string name, std::initializer_list<FsmAction<State>> actions) -> Fsm<T, State> *;
   auto Bind(std::string name, std::vector<FsmAction<State>> actions) -> Fsm<T, State> *;
 
+  // TODO: bind this to lua
   auto Reenter(std::string binding) -> std::string;
   auto SkipCurrent(std::string binding) -> std::string;
   auto SkipCurrent(FsmTransition *transition) -> FsmTransition *;
@@ -144,20 +153,17 @@ public:
 };
 
 template <typename T, typename State>
-Fsm<T, State>::Fsm(FsmTransition *initialTransition) : owner(owner), currentTransition(initialTransition) {}
-
-template <typename T, typename State>
 Fsm<T, State>::Fsm(const Fsm<T, State> &other) {
-  std::cout << "Fsm copied\n";
   owner = other.owner;
   actions = other.actions;
-  currentBinding = other.currentBinding;
-  previousBinding = other.previousBinding;
-  currentAction = other.currentAction;
-  currentTransition = other.currentTransition;
+  current_binding = other.current_binding;
+  previous_binding = other.previous_binding;
+  current_action = other.current_action;
+  transitions = other.transitions;
+  current_transition = other.current_transition;
   // NOTE: does this copy?
-  fnErrOnExcessiveTransition = other.fnErrOnExcessiveTransition;
-  fnErrOnNoPossibleTransition = other.fnErrOnNoPossibleTransition;
+  fn_err_excessive_transition = other.fn_err_excessive_transition;
+  fn_err_no_possible_transition = other.fn_err_no_possible_transition;
 }
 
 template <typename T, typename State>
@@ -165,13 +171,14 @@ auto Fsm<T, State>::operator=(const Fsm &other) -> Fsm & {
   if (this != &other) {
     owner = other.owner;
     actions = other.actions;
-    currentBinding = other.currentBinding;
-    previousBinding = other.previousBinding;
-    currentAction = other.currentAction;
-    currentTransition = other.currentTransition;
+    current_binding = other.current_binding;
+    previous_binding = other.previous_binding;
+    current_action = other.current_action;
+    transitions = other.transitions;
+    current_transition = other.current_transition;
     // NOTE: does this copy?
-    fnErrOnExcessiveTransition = other.fnErrOnExcessiveTransition;
-    fnErrOnNoPossibleTransition = other.fnErrOnNoPossibleTransition;
+    fn_err_excessive_transition = other.fn_err_excessive_transition;
+    fn_err_no_possible_transition = other.fn_err_no_possible_transition;
   }
   return *this;
 }
@@ -182,11 +189,22 @@ auto Fsm<T, State>::Init(T owner) -> void {
 }
 
 template <typename T, typename State>
-auto Fsm<T, State>::BindDefault(FsmAction<State> action) -> Fsm<T, State> * {
-  fsm_assert_msg(action.fnIsEnded == nullptr, "Default action must not end.");
-  actions["default"] = std::vector{action};
-  currentBinding = "default";
-  currentAction = action;
+auto Fsm<T, State>::NewTransition(std::string name) -> FsmTransition * {
+  auto transition_ptr = new FsmTransition(name); // FIXME: memory leak
+                                                 // use shared ptr??
+  transitions.push_back(transition_ptr);
+  return transition_ptr;
+}
+
+template <typename T, typename State>
+auto Fsm<T, State>::BindDefault(FsmTransition *default_transition, FsmAction<State> default_action) -> Fsm<T, State> * {
+  fsm_assert_msg(default_transition != nullptr, "Default transition must not be null.");
+  current_transition = default_transition;
+
+  fsm_assert_msg(default_action.fn_result == nullptr, "Default action must not end.");
+  actions["default"] = std::vector{default_action};
+  current_binding = "default";
+  current_action = default_action;
   return this;
 }
 
@@ -202,7 +220,7 @@ auto Fsm<T, State>::Bind(std::string name, std::initializer_list<FsmAction<State
   fsm_assert_msg(!this->actions.contains(name), "Cannot bind to a name that is already bound.");
   fsm_assert_msg(actions.size() > 1, "Must contain more than 2 actions.");
   for (auto &action : actions)
-    fsm_assert_msg(action.fnIsEnded != nullptr, "Sequenced action must have fnIsEnded function.");
+    fsm_assert_msg(action.fn_result != nullptr, "Sequenced action must have fn_result function.");
 
   this->actions[name] = std::vector(actions);
   return this;
@@ -213,7 +231,7 @@ auto Fsm<T, State>::Bind(std::string name, std::vector<FsmAction<State>> actions
   fsm_assert_msg(!this->actions.contains(name), "Cannot bind to a name that is already bound.");
   fsm_assert_msg(actions.size() > 1, "Must contain more than 2 actions.");
   for (auto &action : actions)
-    fsm_assert_msg(action.fnIsEnded != nullptr, "Sequenced action must have fnIsEnded function.");
+    fsm_assert_msg(action.fn_result != nullptr, "Sequenced action must have fn_result function.");
 
   this->actions[name] = std::vector(actions);
   return this;
@@ -221,146 +239,156 @@ auto Fsm<T, State>::Bind(std::string name, std::vector<FsmAction<State>> actions
 
 template <typename T, typename State>
 auto Fsm<T, State>::Reenter(std::string binding) -> std::string {
-  bReenterTransition = true;
+  b_reenter = true;
   return binding;
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::SkipCurrent(std::string binding) -> std::string {
-  bIsWaitingForActionEnd = false;
-  bSkipWaiting = true;
+  b_is_waiting = false;
+  b_skip_waiting = true;
   return binding;
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::SkipCurrent(FsmTransition *transition) -> FsmTransition * {
-  bIsWaitingForActionEnd = false;
-  bSkipWaiting = true;
+  b_is_waiting = false;
+  b_skip_waiting = true;
   return transition;
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::FsmStart() -> void {
+  fsm_assert_msg(current_transition != nullptr, "Must call the BindDefault() function before starting.");
   fsm_assert_msg(actions.contains("default"), "Must call the BindDefault() function before starting.");
-  std::cout << "[FSM] action enter: " << currentBinding << '\n';
-  currentAction.OnEnter(owner);
+  std::cout << "[FSM] action enter: " << current_binding << '\n';
+  current_action.OnEnter(owner);
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::FsmUpdate() -> void {
-  // std::cout << "FsmUpdate\n";
-
-  // check current action is ended
-  if (currentAction.fnIsEnded != nullptr && currentAction.fnIsEnded())
-    bIsWaitingForActionEnd = false;
-
-  curTransitionCount = 0;
-  bool bCheckNextTransition = true;
-  while (bCheckNextTransition) {
+  cur_transition_count = 0;
+  bool b_check_next_transition = true;
+  while (b_check_next_transition) {
     // check transition count
-    curTransitionCount += 1;
-    if (curTransitionCount > maxTransitionCount) {
+    cur_transition_count += 1;
+    if (cur_transition_count > max_transition_count) {
       // run error callback
-      if (fnErrOnExcessiveTransition)
-        fnErrOnExcessiveTransition();
+      if (fn_err_excessive_transition)
+        fn_err_excessive_transition();
 
       // print trace
       std::cout << "[FSM] transition trace: (from most recent)\n";
-      for (auto e : transitionTrace)
-        std::cout << e << '\n';
+      for (auto trace : transition_trace)
+        std::cout << trace << '\n';
 
       fsm_assert_msg(false, "Excessive transition detected.");
       return;
     }
 
     // update transition trace
-    transitionTrace.push_front(currentTransition->GetName() + " : \"" + currentBinding + "\"");
-    if ((int)transitionTrace.size() > maxTransitionCount)
-      transitionTrace.pop_back();
+    transition_trace.push_front(current_transition->GetName() + " : \"" + current_binding + "\"");
+    if ((int)transition_trace.size() > max_transition_count)
+      transition_trace.pop_back();
+
+    // get current action result
+    std::optional<FsmActionState> action_result;
+    if (current_action.fn_result != nullptr)
+      action_result = current_action.fn_result();
+
+    // check current action is ended
+    if (action_result.has_value() && action_result != Running)
+      b_is_waiting = false;
 
     // get next transition result
-    std::optional<FsmTransitionResult> optionalNext = currentTransition->RunTransitionLogic(currentBinding);
-    if (!optionalNext.has_value()) {
+    std::optional<FsmTransitionResult> opt_next = current_transition->RunTransitionLogic(current_binding);
+    if (!opt_next.has_value()) {
       // run error callback
-      if (fnErrOnNoPossibleTransition)
-        fnErrOnNoPossibleTransition();
+      if (fn_err_no_possible_transition)
+        fn_err_no_possible_transition();
 
-      fsm_assert_msg(false, "No transition is possible from the current binding : \"" + currentBinding + "\"");
+      fsm_assert_msg(false, "No transition is possible from the current binding : \"" + current_binding + "\"");
     }
-    auto next = optionalNext.value();
+    auto next = opt_next.value();
 
     // wait for an action to end
-    if (bIsWaitingForActionEnd)
+    if (b_is_waiting)
       return;
 
     // sequenced action
-    if (!bSkipWaiting && currentActionList && currentAction.fnIsEnded != nullptr && currentAction.fnIsEnded()) {
-      // std::cout << "[FSM] action exit seq[" << currentActionListIndex << "]: " << currentBinding << '\n';
-      currentAction.OnExit(owner);
+    if (!b_skip_waiting && current_action_list && current_action.fn_result != nullptr) {
+      if (action_result == Completed) {
+        // std::cout << "[FSM] action exit seq[" << currentActionListIndex << "]: " << currentBinding << '\n';
+        current_action.OnExit(owner);
 
-      if (currentActionList.value().size() > currentActionListIndex + 1) {
-        bIsWaitingForActionEnd = true;
-        currentActionListIndex += 1;
-        currentAction = currentActionList.value()[currentActionListIndex];
-        std::cout << "[FSM] action enter seq[" << currentActionListIndex << "]: " << currentBinding << '\n';
-        currentAction.OnEnter(owner);
-        return;
+        if (current_action_list.value().size() > current_action_list_index + 1) {
+          // run next action
+          b_is_waiting = true;
+          current_action_list_index += 1;
+          current_action = current_action_list.value()[current_action_list_index];
+          std::cout << "[FSM] action enter seq[" << current_action_list_index << "]: " << current_binding << '\n';
+          current_action.OnEnter(owner);
+          return;
+        }
       }
 
-      // sequence ended
-      bIsWaitingForActionEnd = false;
-      currentActionListIndex = 0;
-      currentActionList = std::nullopt;
-      continue;
+      if (action_result != Running) {
+        // sequence ended
+        b_is_waiting = false;
+        current_action_list_index = 0;
+        current_action_list = std::nullopt;
+        continue;
+      }
     }
 
-    if (bSkipWaiting) {
-      bSkipWaiting = false;
-      currentActionListIndex = 0;
-      currentActionList = std::nullopt;
+    if (b_skip_waiting) {
+      b_skip_waiting = false;
+      current_action_list_index = 0;
+      current_action_list = std::nullopt;
     }
 
     switch (next.index()) {
     case 0: {
-      bCheckNextTransition = false;
+      b_check_next_transition = false;
 
       // get next binding
-      std::string nextBinding = std::get<0>(next);
-      if (!actions.contains(nextBinding))
-        fsm_assert_msg(false, "Unbound action: \"" + nextBinding + "\"");
+      std::string next_binding = std::get<0>(next);
+      if (!actions.contains(next_binding))
+        fsm_assert_msg(false, "Unbound action: \"" + next_binding + "\"");
 
-      if (bReenterTransition || currentBinding != nextBinding) {
-        bReenterTransition = false;
+      if (b_reenter || current_binding != next_binding) {
+        b_reenter = false;
 
         // std::cout << "[FSM] action exit: " << currentBinding << '\n';
-        previousBinding = currentBinding;
-        currentBinding = nextBinding;
-        currentAction.OnExit(owner);
+        previous_binding = current_binding;
+        current_binding = next_binding;
+        current_action.OnExit(owner);
 
-        currentActionList = actions[nextBinding];
-        currentActionListIndex = 0;
-        currentAction = currentActionList.value()[0];
+        current_action_list = actions[next_binding];
+        current_action_list_index = 0;
+        current_action = current_action_list.value()[0];
 
         // wait for the action to end
-        if (currentAction.fnIsEnded != nullptr)
-          bIsWaitingForActionEnd = true;
+        if (current_action.fn_result != nullptr)
+          b_is_waiting = true;
 
-        if (currentActionList.value().size() > 1) {
-          std::cout << "[FSM] action enter seq[0]: " << currentBinding << '\n';
+        if (current_action_list.value().size() > 1) {
+          std::cout << "[FSM] action enter seq[0]: " << current_binding << '\n';
         } else {
-          std::cout << "[FSM] action enter: " << currentBinding << '\n';
+          std::cout << "[FSM] action enter: " << current_binding << '\n';
         }
-        currentAction.OnEnter(owner);
+        current_action.OnEnter(owner);
       }
     } break;
     case 1: {
       // get next transition
       FsmTransition *transition = std::get<1>(next);
       if (transition) {
-        currentTransition = transition;
+        // change transition
+        current_transition = transition;
 
         // update transition trace
-        transitionTrace.front() += " -> " + currentTransition->GetName();
+        transition_trace.front() += " -> " + current_transition->GetName();
       }
     } break;
     }
@@ -369,7 +397,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
 
 template <typename T, typename State>
 auto Fsm<T, State>::Update() -> void {
-  currentAction.OnUpdate(owner);
+  current_action.OnUpdate(owner);
 }
 
 } // namespace LDJ

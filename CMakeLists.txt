@@ -33,16 +33,16 @@ target_compile_options(${TARGET_NAME}
   -Wall
   $<$<CONFIG:Release>:-flto>
   $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  $<$<CONFIG:Debug>:-fno-sanitize-recover=all>)
-  # $<$<CONFIG:Debug>:-fsanitize=address,undefined>)
+  $<$<CONFIG:Debug>:-fno-sanitize-recover=all>
+  $<$<CONFIG:Debug>:-fsanitize=address,undefined>)
 
 target_link_options(${TARGET_NAME}
   PRIVATE
   -Wall
   $<$<CONFIG:Release>:-flto>
   $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
-  $<$<CONFIG:Debug>:-fno-sanitize-recover=all>)
-  # $<$<CONFIG:Debug>:-fsanitize=address,undefined>)
+  $<$<CONFIG:Debug>:-fno-sanitize-recover=all>
+  $<$<CONFIG:Debug>:-fsanitize=address,undefined>)
 
 target_compile_definitions(${TARGET_NAME}
   # https://github.com/bombela/backward-cpp

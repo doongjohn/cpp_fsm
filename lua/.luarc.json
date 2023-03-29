@@ -1,10 +1,12 @@
 {
     "diagnostics.globals": [
-        "TestCharacter",
-        "TestCharacterAction",
-        "TestCharacter_state_hello",
-        "FsmTransition",
-        "TestCharacterFsm"
+        "FsmContinue",
+        "ActionRunning",
+        "ActionCompleted",
+        "ActionBreak",
+        "TestCharacter1",
+        "TestCharacter2",
+        "TestCharacter3"
     ],
     "workspace.checkThirdParty": false
 }
