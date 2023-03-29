@@ -75,7 +75,7 @@ auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> 
     } else {
       return nullptr;
     }
-  } catch (std::exception e) {
+  } catch (const std::exception &e) {
     std::cout << e.what() << '\n';
     return nullptr;
   }
