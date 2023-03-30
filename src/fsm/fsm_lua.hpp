@@ -54,7 +54,9 @@ inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
   // Lua binding: States
   namespace_table["state"] = lua.create_table();
   T::LuaBindStates(namespace_table["state"]);
-  // TODO: T::LuaBindMembers
+
+  // Lua binding: Class members
+  T::LuaBindMembers(namespace_table);
 
   // Lua binding: Fsm
   using Fsm = LDJ::Fsm<T *, State *>;

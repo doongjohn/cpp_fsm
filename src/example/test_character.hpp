@@ -13,9 +13,8 @@ class TestCharacter {
   friend TestStateBase;
   friend Extra;
 
-  bool b_is_hit = false;
-
   std::string name = "John";
+  bool b_is_hit = false;
 
   auto FsmTransitionHit() -> LDJ::FsmTransitionResult {
     if (b_is_hit)
@@ -34,7 +33,11 @@ public:
     namespace_table["wow"] = TestCharacter::state_wow;
     namespace_table["pow"] = TestCharacter::state_pow;
   }
-  // TODO: static auto LuaBindMembers(sol::table namespace_table) -> void {}
+  static auto LuaBindMembers(sol::table namespace_table) -> void {
+    auto ut_Self = namespace_table.new_usertype<Self>("Fsm", sol::constructors<Self()>());
+    ut_Self["name"] = &Self::name;
+    ut_Self["is_hit"] = &Self::b_is_hit;
+  }
 
   sol::state lua;
   LDJ::Fsm<Self *, State *> *fsm;

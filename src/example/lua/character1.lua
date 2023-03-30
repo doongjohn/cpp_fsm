@@ -10,7 +10,10 @@ local tr1 = fsm:new_transition('tr1')
 local tr2 = fsm:new_transition('tr2')
 
 tr1
-  :when('default', function() return 'hello' end)
+  :when('default', function()
+    print(fsm.owner.name)
+    return 'hello'
+  end)
   :when('combo', function()
     if math.random(3) == 1 then return fsm:skip_current(fsm:reenter('combo')) end
     if math.random(3) == 1 then return fsm:skip_current('hello') end
