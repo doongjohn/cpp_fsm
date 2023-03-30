@@ -12,7 +12,7 @@
 
 namespace LDJ {
 
-inline auto init_lua_fsm() -> sol::state {
+inline auto init_fsm_lua() -> sol::state {
   sol::state lua;
 
   lua.open_libraries(sol::lib::base, sol::lib::string, sol::lib::math);
@@ -25,23 +25,24 @@ inline auto init_lua_fsm() -> sol::state {
   auto ut_FsmTransition =
     lua.new_usertype<LDJ::FsmTransition>("FsmTransition", sol::constructors<LDJ::FsmTransition(std::string)>());
   ut_FsmTransition["do_action"] = &LDJ::FsmTransition::DoAction;
-
   ut_FsmTransition["when_any"] = &LDJ::FsmTransition::WhenAny;
-  ut_FsmTransition.set("when", sol::overload(static_cast<FnWhenVec>(&LDJ::FsmTransition::When),
-                                             static_cast<FnWhen>(&LDJ::FsmTransition::When)));
-  ut_FsmTransition.set("when_not", sol::overload(static_cast<FnWhenVec>(&LDJ::FsmTransition::WhenNot),
-                                                 static_cast<FnWhen>(&LDJ::FsmTransition::WhenNot)));
+  ut_FsmTransition["when"] =
+    sol::overload(static_cast<FnWhenVec>(&LDJ::FsmTransition::When), static_cast<FnWhen>(&LDJ::FsmTransition::When));
+  ut_FsmTransition["when_not"] = sol::overload(static_cast<FnWhenVec>(&LDJ::FsmTransition::WhenNot),
+                                               static_cast<FnWhen>(&LDJ::FsmTransition::WhenNot));
 
-  lua["FsmContinue"] = sol::lua_nil;
-  lua["ActionRunning"] = LDJ::FsmActionState::Running;
-  lua["ActionCompleted"] = LDJ::FsmActionState::Completed;
-  lua["ActionBreak"] = LDJ::FsmActionState::Break;
+  lua["FsmContinue"] = LDJ::FsmContinue;
+  lua.new_enum<LDJ::FsmActionState>("ActionResult", {
+                                                      {"Running", LDJ::FsmActionState::Running},
+                                                      {"Completed", LDJ::FsmActionState::Completed},
+                                                      {"ActionBreak", LDJ::FsmActionState::Break},
+                                                    });
 
   return lua;
 }
 
 template <typename T, typename State>
-inline auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> LDJ::Fsm<T *, State *> * {
+inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
   // Create a table for namespace
   auto namespace_table = lua[name].get_or_create<sol::table>();
 
@@ -53,7 +54,7 @@ inline auto get_lua_fsm(sol::state &lua, std::string name, std::string script_pa
   // Lua binding: States
   namespace_table["state"] = lua.create_table();
   T::LuaBindStates(namespace_table["state"]);
-  // TODO: T::LuaBindMember
+  // TODO: T::LuaBindMembers
 
   // Lua binding: Fsm
   using Fsm = LDJ::Fsm<T *, State *>;
@@ -63,17 +64,20 @@ inline auto get_lua_fsm(sol::state &lua, std::string name, std::string script_pa
   ut_Fsm["previous_binding"] = &Fsm::previous_binding;
   ut_Fsm["new_transition"] = &Fsm::NewTransition;
   ut_Fsm["bind_default"] = &Fsm::BindDefault;
-  ut_Fsm.set("bind",
-             sol::overload(static_cast<Fsm *(Fsm::*)(std::string, std::vector<LDJ::FsmAction<State *>>)>(&Fsm::Bind),
-                           static_cast<Fsm *(Fsm::*)(std::string, LDJ::FsmAction<State *>)>(&Fsm::Bind)));
+  ut_Fsm["bind"] =
+    sol::overload(static_cast<Fsm *(Fsm::*)(std::string, std::vector<LDJ::FsmAction<State *>>)>(&Fsm::Bind),
+                  static_cast<Fsm *(Fsm::*)(std::string, LDJ::FsmAction<State *>)>(&Fsm::Bind));
   ut_Fsm["reenter"] = &Fsm::Reenter;
   ut_Fsm["skip_current"] =
     sol::overload(static_cast<std::string (Fsm::*)(std::string)>(&Fsm::SkipCurrent),
                   static_cast<LDJ::FsmTransition *(Fsm::*)(LDJ::FsmTransition * transition)>(&Fsm::SkipCurrent));
+}
 
+template <typename T, typename State>
+inline auto get_fsm_lua(sol::state &lua, std::string script_path) -> LDJ::Fsm<T *, State *> * {
   // Get Fsm from a lua script
   try {
-    sol::optional<Fsm *> opt_fsm = lua.script_file(script_path);
+    sol::optional<LDJ::Fsm<T *, State *> *> opt_fsm = lua.script_file(script_path);
     if (opt_fsm) {
       return opt_fsm.value();
     } else {

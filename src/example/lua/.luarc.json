@@ -1,0 +1,10 @@
+{
+    "diagnostics.globals": [
+        "FsmContinue",
+        "ActionResult",
+        "Character1",
+        "Character2",
+        "Character3"
+    ],
+    "workspace.checkThirdParty": false
+}

@@ -34,8 +34,10 @@ public:
     namespace_table["wow"] = TestCharacter::state_wow;
     namespace_table["pow"] = TestCharacter::state_pow;
   }
+  // TODO: static auto LuaBindMembers(sol::table namespace_table) -> void {}
 
-  LDJ::Fsm<Self *, State *> * fsm;
+  sol::state lua;
+  LDJ::Fsm<Self *, State *> *fsm;
 
   TestCharacter();
 };

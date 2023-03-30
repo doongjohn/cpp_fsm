@@ -1,12 +1,14 @@
 #include "test_character.hpp"
 #include "utils.hpp"
 
+#include "../fsm/fsm_lua.hpp"
+
 TestCharacter::State *TestCharacter::state_default = new State();
 TestCharacter::State *TestCharacter::state_hello = new State();
 TestCharacter::State *TestCharacter::state_wow = new State();
 TestCharacter::State *TestCharacter::state_pow = new State();
 
-TestCharacter::TestCharacter() = default;
+TestCharacter::TestCharacter() : lua(LDJ::init_fsm_lua()) {}
 // TestCharacter::TestCharacter() {
 //   auto extra_hello = new Extra();
 

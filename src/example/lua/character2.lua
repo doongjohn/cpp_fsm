@@ -1,7 +1,7 @@
-local action_default = TestCharacter2.Action.new(TestCharacter2.state.default, {}, nil)
-local action_hello = TestCharacter2.Action.new(TestCharacter2.state.hello, {}, nil)
+local action_default = Character2.Action.new(Character2.state.default, {}, nil)
+local action_hello = Character2.Action.new(Character2.state.hello, {}, nil)
 
-local fsm = TestCharacter2.Fsm.new()
+local fsm = Character2.Fsm.new()
 local tr1 = fsm:new_transition('tr1')
 
 tr1
