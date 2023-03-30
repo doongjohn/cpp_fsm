@@ -142,7 +142,6 @@ public:
   auto Bind(std::string name, std::initializer_list<FsmAction<State>> actions) -> Fsm<T, State> *;
   auto Bind(std::string name, std::vector<FsmAction<State>> actions) -> Fsm<T, State> *;
 
-  // TODO: bind this to lua
   auto Reenter(std::string binding) -> std::string;
   auto SkipCurrent(std::string binding) -> std::string;
   auto SkipCurrent(FsmTransition *transition) -> FsmTransition *;

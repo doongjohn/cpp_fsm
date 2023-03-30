@@ -1,22 +1,21 @@
-#define SOL_ALL_SAFETIES_ON 1
-#include <sol/sol.hpp>
-#include <thread>
+#pragma once
 
-#include "test_character.hpp"
+#include <sol/sol.hpp>
+
+#include "fsm.hpp"
 
 // https://www.lua.org/
 // https://github.com/LuaJIT/LuaJIT
+// https://github.com/ThePhD/sol2
 // https://daley-paley.medium.com/super-simple-example-of-adding-lua-to-c-710730e9528a
 // https://www.youtube.com/watch?v=kDHGfHxwymI
 
-// https://github.com/ThePhD/sol2
-// https://sol2.readthedocs.io/en/latest/tutorial/cxx-in-lua.html
-// https://sol2.readthedocs.io/en/latest/tutorial/customization.html
+namespace LDJ {
 
-auto init_lua_fsm() -> sol::state {
+inline auto init_lua_fsm() -> sol::state {
   sol::state lua;
 
-  lua.open_libraries(sol::lib::base, sol::lib::string);
+  lua.open_libraries(sol::lib::base, sol::lib::string, sol::lib::math);
 
   // Lua binding: FsmTransition
   using FnWhenVec =
@@ -26,6 +25,7 @@ auto init_lua_fsm() -> sol::state {
   auto ut_FsmTransition =
     lua.new_usertype<LDJ::FsmTransition>("FsmTransition", sol::constructors<LDJ::FsmTransition(std::string)>());
   ut_FsmTransition["do_action"] = &LDJ::FsmTransition::DoAction;
+
   ut_FsmTransition["when_any"] = &LDJ::FsmTransition::WhenAny;
   ut_FsmTransition.set("when", sol::overload(static_cast<FnWhenVec>(&LDJ::FsmTransition::When),
                                              static_cast<FnWhen>(&LDJ::FsmTransition::When)));
@@ -41,7 +41,7 @@ auto init_lua_fsm() -> sol::state {
 }
 
 template <typename T, typename State>
-auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> LDJ::Fsm<T *, State *> * {
+inline auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> LDJ::Fsm<T *, State *> * {
   // Create a table for namespace
   auto namespace_table = lua[name].get_or_create<sol::table>();
 
@@ -66,6 +66,10 @@ auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> 
   ut_Fsm.set("bind",
              sol::overload(static_cast<Fsm *(Fsm::*)(std::string, std::vector<LDJ::FsmAction<State *>>)>(&Fsm::Bind),
                            static_cast<Fsm *(Fsm::*)(std::string, LDJ::FsmAction<State *>)>(&Fsm::Bind)));
+  ut_Fsm["reenter"] = &Fsm::Reenter;
+  ut_Fsm["skip_current"] =
+    sol::overload(static_cast<std::string (Fsm::*)(std::string)>(&Fsm::SkipCurrent),
+                  static_cast<LDJ::FsmTransition *(Fsm::*)(LDJ::FsmTransition * transition)>(&Fsm::SkipCurrent));
 
   // Get Fsm from a lua script
   try {
@@ -81,38 +85,4 @@ auto get_lua_fsm(sol::state &lua, std::string name, std::string script_path) -> 
   }
 }
 
-auto main() -> int {
-  sol::state lua = init_lua_fsm();
-
-  // create characters
-  std::vector<TestCharacter *> characters;
-
-  characters.emplace_back(new TestCharacter());
-  characters.back()->fsm = get_lua_fsm<TestCharacter, TestStateBase>(lua, "TestCharacter1", "lua/character1.lua");
-  characters.back()->fsm->Init(characters.back());
-
-  // characters.emplace_back(new TestCharacter());
-  // characters.back()->fsm = get_lua_fsm<TestCharacter, TestStateBase>(lua, "TestCharacter2", "lua/character2.lua");
-  // characters.back()->fsm->Init(characters.back());
-
-  // characters.emplace_back(new TestCharacter());
-  // characters.back()->fsm = get_lua_fsm<TestCharacter, TestStateBase>(lua, "TestCharacter3", "lua/character3.lua");
-  // characters.back()->fsm->Init(characters.back());
-
-  // game start
-  for (size_t i = 0; i < characters.size(); ++i) {
-    std::cout << "character " << i << " ";
-    characters[i]->fsm->FsmStart();
-  }
-  // game loop
-  while (true) {
-    for (size_t i = 0; i < characters.size(); ++i) {
-      std::cout << "character " << i << " ";
-      characters[i]->fsm->FsmUpdate();
-      characters[i]->fsm->Update();
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  }
-
-  return 0;
-}
+} // namespace LDJ

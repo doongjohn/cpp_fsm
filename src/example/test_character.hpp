@@ -3,7 +3,7 @@
 #include <sol/sol.hpp>
 #include <string>
 
-#include "fsm/fsm.hpp"
+#include "../fsm/fsm.hpp"
 #include "test_state.hpp"
 
 class TestCharacter {

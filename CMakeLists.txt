@@ -21,7 +21,8 @@ list(REMOVE_ITEM SRC_LUA
 file(GLOB_RECURSE SRC_FILES
   ${SRC_BACKWARD}
   ${SRC_LUA}
-  src/*.cpp)
+  src/fsm/*.cpp
+  src/example/*.cpp)
 
 add_executable(${TARGET_NAME} ${SRC_FILES})
 
