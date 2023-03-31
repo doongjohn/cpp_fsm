@@ -110,7 +110,7 @@ public:
 ```cpp
 auto c = new YourCharacter();
 LDJ::prepare_fsm_lua<YourCharacter, YourStateBase>(c->lua, "Character");
-c->fsm = LDJ::get_fsm_lua<YourCharacter, YourStateBase>(c->lua, "src/example/lua/character.lua");
+c->fsm = LDJ::get_fsm_lua<YourCharacter, YourStateBase>(c->lua, "src/lua/character.lua");
 c->fsm->Init(c);
 ```
 
