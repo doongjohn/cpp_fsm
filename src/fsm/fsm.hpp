@@ -13,7 +13,7 @@
 
 namespace LDJ {
 
-enum FsmActionState {
+enum FsmActionResult {
   Running,
   Completed,
   Break,
@@ -24,11 +24,11 @@ class FsmAction {
 public:
   State state;
   std::vector<State> extras;
-  std::function<FsmActionState()> fn_result;
+  std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;
-  FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionState()> fn_result = nullptr);
-  FsmAction(State state, std::vector<State> extras, std::function<FsmActionState()> fn_result = nullptr);
+  FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
+  FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
 
   // Copy constructor
   FsmAction(const FsmAction &other);
@@ -76,11 +76,12 @@ public:
 };
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionState()> fn_result)
+FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras,
+                            std::function<FsmActionResult()> fn_result)
     : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionState()> fn_result)
+FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result)
     : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
 
 template <typename State>
@@ -262,7 +263,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       transition_trace.pop_back();
 
     // get current action result
-    std::optional<FsmActionState> action_result;
+    std::optional<FsmActionResult> action_result;
     if (current_action.fn_result != nullptr)
       action_result = current_action.fn_result();
 

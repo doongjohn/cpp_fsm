@@ -32,11 +32,11 @@ inline auto init_fsm_lua() -> sol::state {
                                                static_cast<FnWhen>(&LDJ::FsmTransition::WhenNot));
 
   lua["FsmContinue"] = LDJ::FsmContinue;
-  lua.new_enum<LDJ::FsmActionState>("ActionResult", {
-                                                      {"Running", LDJ::FsmActionState::Running},
-                                                      {"Completed", LDJ::FsmActionState::Completed},
-                                                      {"ActionBreak", LDJ::FsmActionState::Break},
-                                                    });
+  lua.new_enum<LDJ::FsmActionResult>("ActionResult", {
+                                                       {"Running", LDJ::FsmActionResult::Running},
+                                                       {"Completed", LDJ::FsmActionResult::Completed},
+                                                       {"ActionBreak", LDJ::FsmActionResult::Break},
+                                                     });
 
   return lua;
 }
@@ -49,7 +49,7 @@ inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
   // Lua binding: Action
   auto ut_Action = namespace_table.new_usertype<LDJ::FsmAction<State *>>(
     "Action",
-    sol::constructors<LDJ::FsmAction<State *>(State *, std::vector<State *>, std::function<LDJ::FsmActionState()>)>());
+    sol::constructors<LDJ::FsmAction<State *>(State *, std::vector<State *>, std::function<LDJ::FsmActionResult()>)>());
 
   // Lua binding: States
   namespace_table["state"] = lua.create_table();
@@ -72,7 +72,7 @@ inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
   ut_Fsm["reenter"] = &Fsm::Reenter;
   ut_Fsm["skip_current"] =
     sol::overload(static_cast<std::string (Fsm::*)(std::string)>(&Fsm::SkipCurrent),
-                  static_cast<LDJ::FsmTransition *(Fsm::*)(LDJ::FsmTransition * transition)>(&Fsm::SkipCurrent));
+                  static_cast<LDJ::FsmTransition *(Fsm::*)(LDJ::FsmTransition *transition)>(&Fsm::SkipCurrent));
 }
 
 template <typename T, typename State>
