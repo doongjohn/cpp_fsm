@@ -55,6 +55,9 @@ file(GLOB_RECURSE SRC_EXAMPLE
 add_executable(example
   ${SRC_EXAMPLE})
 
+# cmake --build build -v --config Debug --target example
+set_target_properties(example PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 target_compile_features(example
   PRIVATE cxx_std_20)
 
