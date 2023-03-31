@@ -21,7 +21,7 @@ auto tr2 = fsm->NewTransition("tr2");
 
 fsm->Init(this);
 fsm
-  ->BindDefault(tr1, action_default) // `action_default` will be bound as "default"
+  ->BindDefault(tr1, action_default) // `action_default` automatically bound as "default"
   ->Bind("hello", action_hello)
   ->Bind("wow", action_wow)
   ->Bind("pow", action_pow)
