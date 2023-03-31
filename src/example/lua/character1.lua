@@ -9,6 +9,13 @@ local fsm = Character1.Fsm.new()
 local tr1 = fsm:new_transition('tr1')
 local tr2 = fsm:new_transition('tr2')
 
+fsm
+  :bind_default(tr1, action_default)
+  :bind('hello', action_hello)
+  :bind('wow', action_wow)
+  :bind('pow', action_pow)
+  :bind('combo', { action_combo1, action_combo2 })
+
 tr1
   :when('default', function()
     print(fsm.owner.name)
@@ -26,8 +33,3 @@ tr2
   :when('wow', function() return tr1:do_action('combo') end)
 
 return fsm
-  :bind_default(tr1, action_default)
-  :bind('hello', action_hello)
-  :bind('wow', action_wow)
-  :bind('pow', action_pow)
-  :bind('combo', { action_combo1, action_combo2 })

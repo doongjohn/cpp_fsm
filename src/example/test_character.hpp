@@ -10,7 +10,7 @@ class TestCharacter {
   using Self = TestCharacter;
   using State = TestStateBase;
   using Extra = TestExtra;
-  friend TestStateBase;
+  friend State;
   friend Extra;
 
   std::string name = "John";
@@ -27,6 +27,7 @@ public:
   static State *state_hello;
   static State *state_wow;
   static State *state_pow;
+
   static auto LuaBindStates(sol::table namespace_table) -> void {
     namespace_table["default"] = TestCharacter::state_default;
     namespace_table["hello"] = TestCharacter::state_hello;

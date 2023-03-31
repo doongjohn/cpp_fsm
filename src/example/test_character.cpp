@@ -16,8 +16,8 @@ TestCharacter::TestCharacter() : lua(LDJ::init_fsm_lua()) {}
 //   LDJ::FsmAction<State *> action_hello(state_hello, {extra_hello});
 //   LDJ::FsmAction<State *> action_wow(state_wow, {});
 //   LDJ::FsmAction<State *> action_pow(state_pow, {});
-//   LDJ::FsmAction<State *> combo1(state_hello, {}, [] { return LDJ::Completed; });
-//   LDJ::FsmAction<State *> combo2(state_hello, {}, [] { return LDJ::Completed; });
+//   LDJ::FsmAction<State *> action_combo1(state_wow, {}, [] { return LDJ::Completed; });
+//   LDJ::FsmAction<State *> action_combo2(state_pow, {}, [] { return LDJ::Completed; });
 
 //   fsm = new LDJ::Fsm<Self *, State *>();
 //   auto tr1 = fsm->NewTransition("tr1");
@@ -32,7 +32,7 @@ TestCharacter::TestCharacter() : lua(LDJ::init_fsm_lua()) {}
 //     ->Bind("hello", action_hello)
 //     ->Bind("wow", action_wow)
 //     ->Bind("pow", action_pow)
-//     ->Bind("combo", {combo1, combo2});
+//     ->Bind("combo", {action_combo1, action_combo2});
 
 //   tr1
 //     ->When("default", [] { return "hello"; })
