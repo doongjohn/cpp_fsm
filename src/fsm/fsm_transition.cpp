@@ -2,8 +2,8 @@
 
 using namespace LDJ;
 
+// transition to specified action after transition
 auto FsmTransition::DoAction(std::string binding) -> FsmTransition * {
-  // TODO: check if binding is possible
   immediate_binding = binding;
   return this;
 }
@@ -65,6 +65,7 @@ auto FsmTransition::RunTransitionLogic(std::string current_binding) -> std::opti
         continue;
     }
     nextFound = true;
+
     // return result
     FsmTransitionResult result = transition.fn_get_next();
     if (result.index() == 0 || (result.index() == 1 && std::get<1>(result) != nullptr)) {
@@ -72,8 +73,9 @@ auto FsmTransition::RunTransitionLogic(std::string current_binding) -> std::opti
     }
   }
 
-  if (nextFound)
+  if (nextFound) {
     return nullptr;
+  }
 
   return std::nullopt;
 }

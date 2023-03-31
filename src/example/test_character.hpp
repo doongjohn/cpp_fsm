@@ -34,8 +34,11 @@ public:
     namespace_table["pow"] = TestCharacter::state_pow;
   }
   static auto LuaBindMembers(sol::table namespace_table) -> void {
-    auto ut_Self = namespace_table.new_usertype<Self>("Fsm", sol::constructors<Self()>());
+    auto ut_Self = namespace_table.new_usertype<Self>("TestCharacter");
     ut_Self["name"] = &Self::name;
+    ut_Self["name1"] = &Self::name;
+    ut_Self["name2"] = &Self::name;
+    ut_Self["name3"] = &Self::name;
     ut_Self["is_hit"] = &Self::b_is_hit;
   }
 

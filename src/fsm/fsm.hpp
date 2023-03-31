@@ -109,6 +109,7 @@ public:
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
   Fsm() = default;
+  ~Fsm();
 
   // Copy constructor
   Fsm(const Fsm &other);
@@ -150,6 +151,13 @@ public:
   auto FsmUpdate() -> void;
   auto Update() -> void;
 };
+
+template <typename T, typename State>
+Fsm<T, State>::~Fsm() {
+  for (auto t : transitions) {
+    delete t;
+  }
+}
 
 template <typename T, typename State>
 Fsm<T, State>::Fsm(const Fsm<T, State> &other) {
