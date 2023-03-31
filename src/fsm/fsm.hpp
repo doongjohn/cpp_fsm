@@ -111,9 +111,6 @@ public:
   Fsm() = default;
   ~Fsm();
 
-  // Copy constructor
-  Fsm(const Fsm &other);
-
   // private:
   bool b_reenter = false;
   bool b_skip_waiting = false;
@@ -132,8 +129,6 @@ public:
   std::list<std::string> transition_trace;
 
 public:
-  auto operator=(const Fsm &other) -> Fsm &;
-
   auto Init(T owner) -> void;
 
   auto NewTransition(std::string name) -> FsmTransition *;
@@ -160,45 +155,13 @@ Fsm<T, State>::~Fsm() {
 }
 
 template <typename T, typename State>
-Fsm<T, State>::Fsm(const Fsm<T, State> &other) {
-  owner = other.owner;
-  actions = other.actions;
-  current_binding = other.current_binding;
-  previous_binding = other.previous_binding;
-  current_action = other.current_action;
-  transitions = other.transitions;
-  current_transition = other.current_transition;
-  // NOTE: does this copy?
-  fn_err_excessive_transition = other.fn_err_excessive_transition;
-  fn_err_no_possible_transition = other.fn_err_no_possible_transition;
-}
-
-template <typename T, typename State>
-auto Fsm<T, State>::operator=(const Fsm &other) -> Fsm & {
-  if (this != &other) {
-    owner = other.owner;
-    actions = other.actions;
-    current_binding = other.current_binding;
-    previous_binding = other.previous_binding;
-    current_action = other.current_action;
-    transitions = other.transitions;
-    current_transition = other.current_transition;
-    // NOTE: does this copy?
-    fn_err_excessive_transition = other.fn_err_excessive_transition;
-    fn_err_no_possible_transition = other.fn_err_no_possible_transition;
-  }
-  return *this;
-}
-
-template <typename T, typename State>
 auto Fsm<T, State>::Init(T owner) -> void {
   this->owner = owner;
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::NewTransition(std::string name) -> FsmTransition * {
-  auto transition_ptr = new FsmTransition(name); // FIXME: memory leak
-                                                 // use shared ptr??
+  auto transition_ptr = new FsmTransition(name);
   transitions.push_back(transition_ptr);
   return transition_ptr;
 }

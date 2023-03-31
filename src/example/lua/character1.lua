@@ -2,7 +2,7 @@ local action_default = Character1.Action.new(Character1.state.default, {}, nil)
 local action_hello = Character1.Action.new(Character1.state.hello, {}, nil)
 local action_wow = Character1.Action.new(Character1.state.wow, {}, nil)
 local action_pow = Character1.Action.new(Character1.state.pow, {}, nil)
-local action_combo1 = Character1.Action.new(Character1.state.pow, {}, function() return ActionResult.Completed end)
+local action_combo1 = Character1.Action.new(Character1.state.wow, {}, function() return ActionResult.Completed end)
 local action_combo2 = Character1.Action.new(Character1.state.pow, {}, function() return ActionResult.Completed end)
 
 local fsm = Character1.Fsm.new()
