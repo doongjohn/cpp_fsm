@@ -17,19 +17,27 @@ project(cpp_fsm
   LANGUAGES C CXX
 )
 
-set(RELEASE_OPTIONS
-  -Wall
-  -Wextra
-  -flto
-)
+if (MSVC)
+  set(RELEASE_OPTIONS /GL)
+elseif (UNIX AND NOT APPLE)
+  set(RELEASE_OPTIONS
+    -Wall
+    -Wextra
+    -flto
+  )
+endif()
 
-set(DEBUG_OPTIONS
-  -Wall
-  -Wextra
-  -fno-omit-frame-pointer
-  -fno-sanitize-recover=all
-  -fsanitize=address,undefined
-)
+if (MSVC)
+  set(DEBUG_OPTIONS)
+elseif (UNIX AND NOT APPLE)
+  set(DEBUG_OPTIONS
+    -Wall
+    -Wextra
+    -fno-omit-frame-pointer
+    -fno-sanitize-recover=all
+    -fsanitize=address,undefined
+  )
+endif()
 
 include(cmake/fsm.cmake)
 include(cmake/example.cmake)

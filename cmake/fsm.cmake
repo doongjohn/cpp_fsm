@@ -13,15 +13,23 @@ add_library(cpp_fsm_obj OBJECT
 target_compile_features(cpp_fsm_obj
   PUBLIC cxx_std_20)
 
+if (MSVC)
+  # https://stackoverflow.com/a/13309747
+  set(PIC_OPTION)
+elseif (UNIX AND NOT APPLE)
+  # https://stackoverflow.com/a/31509007
+  set(PIC_OPTION -fPIC)
+endif()
+
 target_compile_options(cpp_fsm_obj
   PUBLIC
-  -fPIC # https://stackoverflow.com/a/31509007
+  ${PIC_OPTION}
   $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
   $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_link_options(cpp_fsm_obj
   PUBLIC
-  -fPIC
+  ${PIC_OPTION}
   $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
   $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
