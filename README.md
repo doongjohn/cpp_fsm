@@ -26,10 +26,10 @@ public:
   static State *state_pow;
 
   static auto LuaBindStates(sol::table namespace_table) -> void {
-    namespace_table["default"] = YourCharacter::state_default;
-    namespace_table["hello"] = YourCharacter::state_hello;
-    namespace_table["wow"] = YourCharacter::state_wow;
-    namespace_table["pow"] = YourCharacter::state_pow;
+    namespace_table["default"] = Self::state_default;
+    namespace_table["hello"] = Self::state_hello;
+    namespace_table["wow"] = Self::state_wow;
+    namespace_table["pow"] = Self::state_pow;
   }
   static auto LuaBindMembers(sol::table namespace_table) -> void {
     auto ut_Self = namespace_table.new_usertype<Self>("YourCharacter");
