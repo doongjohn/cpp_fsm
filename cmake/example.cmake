@@ -18,7 +18,7 @@ if (UNIX AND NOT APPLE)
 endif()
 
 # example
-file(GLOB_RECURSE SRC_EXAMPLE src/example/*.cpp)
+file(GLOB_RECURSE SRC_EXAMPLE example/*.cpp)
 add_executable(example ${SRC_EXAMPLE})
 
 # cmake --build build -v --config Debug --target example
@@ -39,7 +39,8 @@ target_link_options(example
 
 target_include_directories(example
   PRIVATE ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src
-  PRIVATE ${PROJECT_SOURCE_DIR}/vendor)
+  PRIVATE ${PROJECT_SOURCE_DIR}/vendor
+  PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 target_compile_definitions(example
   PRIVATE SOL_ALL_SAFETIES_ON=1)
