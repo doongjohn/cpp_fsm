@@ -46,7 +46,7 @@ target_compile_definitions(example
 
 if (MSVC)
   target_link_libraries(example
-    PRIVATE cpp_fsm_shared.dll)
+    PRIVATE cpp_fsm_shared)
 elseif (UNIX AND NOT APPLE)
   target_link_libraries(example
     PRIVATE cpp_fsm_shared

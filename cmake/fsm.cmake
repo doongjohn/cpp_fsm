@@ -5,6 +5,7 @@ list(REMOVE_ITEM SRC_LUA
 
 # object file
 # https://stackoverflow.com/a/68406028
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 file(GLOB_RECURSE SRC_FSM src/fsm/*.cpp)
 add_library(cpp_fsm_obj OBJECT
   ${SRC_LUA}
