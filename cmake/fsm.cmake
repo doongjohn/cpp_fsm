@@ -35,8 +35,8 @@ target_compile_definitions(cpp_fsm_obj
   PUBLIC SOL_ALL_SAFETIES_ON=1)
 
 # dynamic library
-add_library(cpp_fsm SHARED)
-target_link_libraries(cpp_fsm
+add_library(cpp_fsm_shared SHARED)
+target_link_libraries(cpp_fsm_shared
   PRIVATE cpp_fsm_obj)
 
 # static library
