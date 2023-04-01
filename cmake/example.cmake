@@ -44,10 +44,11 @@ target_include_directories(example
 target_compile_definitions(example
   PRIVATE SOL_ALL_SAFETIES_ON=1)
 
-target_link_libraries(example
-  PRIVATE cpp_fsm_shared)
-
-if (UNIX AND NOT APPLE)
+if (MSVC)
   target_link_libraries(example
+    PRIVATE cpp_fsm_shared.dll)
+elseif (UNIX AND NOT APPLE)
+  target_link_libraries(example
+    PRIVATE cpp_fsm_shared
     PRIVATE $<$<CONFIG:Debug>:backward>)
 endif()
