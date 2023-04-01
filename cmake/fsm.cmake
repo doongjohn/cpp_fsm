@@ -16,16 +16,14 @@ target_compile_features(cpp_fsm_obj
 target_compile_options(cpp_fsm_obj
   PUBLIC
   -fPIC # https://stackoverflow.com/a/31509007
-  -Wall
-  $<$<CONFIG:Release>:-flto>
-  ${SANITIZER_OPTIONS})
+  $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
+  $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_link_options(cpp_fsm_obj
   PUBLIC
   -fPIC
-  -Wall
-  $<$<CONFIG:Release>:-flto>
-  ${SANITIZER_OPTIONS})
+  $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
+  $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_include_directories(cpp_fsm_obj
   PUBLIC ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src

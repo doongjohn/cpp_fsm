@@ -8,10 +8,10 @@ if (UNIX AND NOT APPLE)
     PRIVATE cxx_std_20)
 
   target_compile_options(backward
-    PRIVATE ${SANITIZER_OPTIONS})
+    PRIVATE ${DEBUG_OPTIONS})
 
   target_link_options(backward
-    PRIVATE ${SANITIZER_OPTIONS})
+    PRIVATE ${DEBUG_OPTIONS})
 
   target_compile_definitions(backward
     PRIVATE BACKWARD_HAS_DW=1)
@@ -29,15 +29,13 @@ target_compile_features(example
 
 target_compile_options(example
   PRIVATE
-  -Wall
-  $<$<CONFIG:Release>:-flto>
-  ${SANITIZER_OPTIONS})
+  $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
+  $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_link_options(example
   PRIVATE
-  -Wall
-  $<$<CONFIG:Release>:-flto>
-  ${SANITIZER_OPTIONS})
+  $<$<CONFIG:Release>:${RELEASE_OPTIONS}>
+  $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_include_directories(example
   PRIVATE ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src
@@ -51,5 +49,5 @@ target_link_libraries(example
 
 if (UNIX AND NOT APPLE)
   target_link_libraries(example
-    PRIVATE backward)
+    PRIVATE $<$<CONFIG:Debug>:backward>)
 endif()
