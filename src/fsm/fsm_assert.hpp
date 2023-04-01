@@ -4,11 +4,13 @@
 #include <iostream>
 #include <string>
 
+#include "fsm_logger.hpp"
+
 namespace LDJ {
 
 inline auto fsm_assert_msg(bool expr, std::string msg) -> void {
   if (!expr)
-    std::cout << "[FSM] Assertion failed: " << msg << '\n';
+    fsm_log("Assertion failed: " + msg);
   assert(expr);
 }
 

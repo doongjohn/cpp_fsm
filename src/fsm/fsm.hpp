@@ -232,7 +232,7 @@ template <typename T, typename State>
 auto Fsm<T, State>::FsmStart() -> void {
   fsm_assert_msg(current_transition != nullptr, "Must call the BindDefault() function before starting.");
   fsm_assert_msg(actions.contains("default"), "Must call the BindDefault() function before starting.");
-  std::cout << "[FSM] action enter: " << current_binding << '\n';
+  fsm_log("action enter: " + current_binding);
   current_action.OnEnter(owner);
 }
 
@@ -249,9 +249,9 @@ auto Fsm<T, State>::FsmUpdate() -> void {
         fn_err_excessive_transition();
 
       // print trace
-      std::cout << "[FSM] transition trace: (from most recent)\n";
+      fsm_log("transition trace: (from most recent)");
       for (auto trace : transition_trace)
-        std::cout << trace << '\n';
+        fsm_log(trace, "");
 
       fsm_assert_msg(false, "Excessive transition detected.");
       return;
@@ -289,7 +289,6 @@ auto Fsm<T, State>::FsmUpdate() -> void {
     // sequenced action
     if (!b_skip_waiting && current_action_list && current_action.fn_result != nullptr) {
       if (action_result == Completed) {
-        // std::cout << "[FSM] action exit seq[" << currentActionListIndex << "]: " << currentBinding << '\n';
         current_action.OnExit(owner);
 
         if (current_action_list.value().size() > current_action_list_index + 1) {
@@ -297,7 +296,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
           b_is_waiting = true;
           current_action_list_index += 1;
           current_action = current_action_list.value()[current_action_list_index];
-          std::cout << "[FSM] action enter seq[" << current_action_list_index << "]: " << current_binding << '\n';
+          fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
           current_action.OnEnter(owner);
           return;
         }
@@ -330,7 +329,6 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       if (b_reenter || current_binding != next_binding) {
         b_reenter = false;
 
-        // std::cout << "[FSM] action exit: " << currentBinding << '\n';
         previous_binding = current_binding;
         current_binding = next_binding;
         current_action.OnExit(owner);
@@ -344,9 +342,9 @@ auto Fsm<T, State>::FsmUpdate() -> void {
           b_is_waiting = true;
 
         if (current_action_list.value().size() > 1) {
-          std::cout << "[FSM] action enter seq[0]: " << current_binding << '\n';
+          fsm_log("action enter seq[0]: " + current_binding);
         } else {
-          std::cout << "[FSM] action enter: " << current_binding << '\n';
+          fsm_log("action enter: " + current_binding);
         }
         current_action.OnEnter(owner);
       }

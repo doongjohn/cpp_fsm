@@ -86,7 +86,7 @@ inline auto get_fsm_lua(sol::state &lua, std::string script_path) -> LDJ::Fsm<T 
       return nullptr;
     }
   } catch (const std::exception &e) {
-    std::cout << e.what() << '\n';
+    fsm_log(e.what());
     return nullptr;
   }
 }
