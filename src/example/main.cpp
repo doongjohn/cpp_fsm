@@ -1,17 +1,14 @@
 #include <sol/sol.hpp>
 #include <thread>
 
-// #define LDJ_FSM_LOGGER TestLogger
-// struct TestLogger {
-//   static auto Log(std::string msg, std::string prefix) -> void {
-//     std::cout << "Test logger: " << prefix << msg << '\n';
-//   }
-// };
-
 #include "../fsm/fsm_lua.hpp"
 #include "test_character.hpp"
 
 auto main() -> int {
+  // LDJ::FsmLogger::logger = [](std::string msg, std::string prefix) {
+  //   std::cout << "my logger: " << prefix << msg << '\n';
+  // };
+
   std::vector<TestCharacter *> characters;
 
   auto c1 = new TestCharacter();

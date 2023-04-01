@@ -1,27 +1,23 @@
 #pragma once
 
+#include <functional>
 #include <iostream>
 #include <string>
 
-#ifndef LDJ_FSM_LOGGER
-#define LDJ_FSM_LOGGER ConsoleLogger
-#endif
-
 namespace LDJ {
 
-struct ConsoleLogger {
-  static auto Log(std::string msg, std::string prefix) -> void {
-    std::cout << prefix << msg << '\n';
-  }
+struct FsmLogger {
+  static std::function<void(std::string, std::string)> logger;
 };
 
-template <typename Logger>
-inline auto fsm_log_template(std::string msg, std::string prefix) {
-  Logger::Log(msg, prefix);
-}
+inline std::function<void(std::string, std::string)> FsmLogger::logger = nullptr;
 
-inline auto fsm_log(std::string msg, std::string prefix = "[FSM] ") {
-  fsm_log_template<LDJ_FSM_LOGGER>(msg, prefix);
+inline auto fsm_log(std::string msg, std::string prefix = "[FSM] ") -> void {
+  if (FsmLogger::logger) {
+    FsmLogger::logger(msg, prefix);
+  } else {
+    std::cout << prefix << msg << '\n';
+  }
 }
 
 } // namespace LDJ
