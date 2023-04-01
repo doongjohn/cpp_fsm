@@ -33,4 +33,4 @@ target_compile_definitions(example
 
 target_link_libraries(example
   PRIVATE dw
-  PRIVATE cpp_fsm)
+  PRIVATE cpp_fsm_shared)
