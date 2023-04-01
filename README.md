@@ -5,6 +5,43 @@
 ## Example cpp
 
 ```cpp
+#include <sol/sol.hpp>
+
+#include "fsm/fsm.hpp"
+#include "your_state.hpp"
+
+class YourCharacter {
+  using Self = YourCharacter;
+  using State = YourStateBase;
+  using Extra = YourStateExtra;
+  friend State;
+  friend Extra;
+
+  std::string name = "John";
+
+public:
+  static State *state_default;
+  static State *state_hello;
+  static State *state_wow;
+  static State *state_pow;
+
+  static auto LuaBindStates(sol::table namespace_table) -> void {
+    namespace_table["default"] = YourCharacter::state_default;
+    namespace_table["hello"] = YourCharacter::state_hello;
+    namespace_table["wow"] = YourCharacter::state_wow;
+    namespace_table["pow"] = YourCharacter::state_pow;
+  }
+  static auto LuaBindMembers(sol::table namespace_table) -> void {
+    auto ut_Self = namespace_table.new_usertype<Self>("YourCharacter");
+    ut_Self["name"] = &Self::name;
+  }
+
+  sol::state lua;
+  LDJ::Fsm<Self *, State *> *fsm;
+};
+```
+
+```cpp
 // `Extra` inherits from `State` and runs in the same frame as `State`.
 auto extra_hello = new Extra();
 
@@ -68,43 +105,6 @@ tr2
   :when('wow', function() return tr1:do_action('combo') end)
 
 return fsm
-```
-
-```cpp
-#include <sol/sol.hpp>
-
-#include "fsm/fsm.hpp"
-#include "your_state.hpp"
-
-class YourCharacter {
-  using Self = YourCharacter;
-  using State = YourStateBase;
-  using Extra = YourStateExtra;
-  friend State;
-  friend Extra;
-
-  std::string name = "John";
-
-public:
-  static State *state_default;
-  static State *state_hello;
-  static State *state_wow;
-  static State *state_pow;
-
-  static auto LuaBindStates(sol::table namespace_table) -> void {
-    namespace_table["default"] = TestCharacter::state_default;
-    namespace_table["hello"] = TestCharacter::state_hello;
-    namespace_table["wow"] = TestCharacter::state_wow;
-    namespace_table["pow"] = TestCharacter::state_pow;
-  }
-  static auto LuaBindMembers(sol::table namespace_table) -> void {
-    auto ut_Self = namespace_table.new_usertype<Self>("YourCharacter");
-    ut_Self["name"] = &Self::name;
-  }
-
-  sol::state lua;
-  LDJ::Fsm<Self *, State *> *fsm;
-};
 ```
 
 ```cpp
