@@ -15,6 +15,7 @@ auto main() -> int {
   LDJ::prepare_fsm_lua<TestCharacter, TestStateBase>(c1->lua, "Character1");
   c1->fsm = LDJ::get_fsm_lua<TestCharacter, TestStateBase>(c1->lua, "example/lua/character1.lua");
   c1->fsm->Init(c1);
+  c1->fsm->print_log = true;
   characters.push_back(c1);
 
   // auto c2 = new TestCharacter();
