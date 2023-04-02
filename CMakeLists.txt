@@ -18,7 +18,7 @@ project(cpp_fsm
 )
 
 if (MSVC)
-  set(RELEASE_OPTIONS /GL)
+  set(RELEASE_OPTIONS)
 elseif (UNIX AND NOT APPLE)
   set(RELEASE_OPTIONS
     -Wall
