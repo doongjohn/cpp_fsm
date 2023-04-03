@@ -114,3 +114,16 @@ c->fsm = LDJ::get_fsm_lua<YourCharacter, YourStateBase>(c->lua, "src/lua/charact
 c->fsm->Init(c);
 ```
 
+### Unreal engine
+
+```cpp
+LDJ::FsmLogger::fn_logger = [](std::string msg, std::string prefix)
+{
+    UE_LOG(LogTemp, Log, TEXT("%s"), *FString(UTF8_TO_TCHAR((prefix + msg).c_str())));
+};
+
+LDJ::FsmAssert::fn_assert = [](bool expr)
+{
+    check(expr);
+};
+```
