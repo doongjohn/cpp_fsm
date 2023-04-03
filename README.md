@@ -1,6 +1,6 @@
 # cpp_fsm
 
-`C++` FSM framework with `lua` binding.
+`C++ 20` FSM framework with `lua` binding.
 
 ## Example cpp
 
