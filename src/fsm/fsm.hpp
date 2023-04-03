@@ -2,7 +2,7 @@
 
 #ifdef _MSC_VER
 // https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4458
-#pragma warning(disable: 4458)
+#pragma warning(disable : 4458)
 #endif
 
 #include <functional>
@@ -111,23 +111,24 @@ public:
   std::string current_binding;
   std::string previous_binding;
 
+  FsmAction<State> current_action;
+  FsmTransition *current_transition = nullptr;
+
+  std::function<void()> fn_on_action_change = nullptr;
   std::function<void()> fn_err_excessive_transition = nullptr;
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
   Fsm() = default;
   ~Fsm();
 
-  // private:
+private:
   bool b_reenter = false;
   bool b_skip_waiting = false;
   bool b_is_waiting = false;
 
-  FsmAction<State> current_action;
   size_t current_action_list_index = 0;
   std::optional<std::span<FsmAction<State>>> current_action_list = std::nullopt;
-
   std::vector<FsmTransition *> transitions;
-  FsmTransition *current_transition = nullptr;
 
   // NOTE: these are for debugging
   const int max_transition_count = 50;
@@ -306,6 +307,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
           b_is_waiting = true;
           current_action_list_index += 1;
           current_action = current_action_list.value()[current_action_list_index];
+
           if (print_log)
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
           current_action.OnEnter(owner);
@@ -360,6 +362,9 @@ auto Fsm<T, State>::FsmUpdate() -> void {
           }
         }
         current_action.OnEnter(owner);
+
+        if (fn_on_action_change)
+          fn_on_action_change();
       }
     } break;
     case 1: {
@@ -368,7 +373,6 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       if (transition) {
         // change transition
         current_transition = transition;
-
         // update transition trace
         transition_trace.front() += " -> " + current_transition->GetName();
       }

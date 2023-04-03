@@ -10,8 +10,11 @@ auto main() -> int {
   auto c1 = new TestCharacter();
   LDJ::prepare_fsm_lua<TestCharacter, TestStateBase>(c1->lua, "Character1");
   c1->fsm = LDJ::get_fsm_lua<TestCharacter, TestStateBase>(c1->lua, "example/lua/character1.lua");
-  c1->fsm->Init(c1);
   c1->fsm->print_log = true;
+  c1->fsm->fn_on_action_change = [=]() {
+    std::cout << "action change: " << c1->fsm->previous_binding << " -> " << c1->fsm->current_binding << '\n';
+  };
+  c1->fsm->Init(c1);
   characters.push_back(c1);
 
   // auto c2 = new TestCharacter();
