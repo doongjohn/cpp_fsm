@@ -4,12 +4,6 @@
 
 #include "fsm.hpp"
 
-// https://www.lua.org/
-// https://github.com/LuaJIT/LuaJIT
-// https://github.com/ThePhD/sol2
-// https://daley-paley.medium.com/super-simple-example-of-adding-lua-to-c-710730e9528a
-// https://www.youtube.com/watch?v=kDHGfHxwymI
-
 namespace LDJ {
 
 inline auto init_fsm_lua() -> sol::state {
@@ -44,25 +38,13 @@ inline auto init_fsm_lua() -> sol::state {
 }
 
 template <typename T, typename State>
-inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
-  // Create a table for namespace
-  auto namespace_table = lua[name].get_or_create<sol::table>();
-
+inline auto prepare_fsm_lua_base(sol::state &lua) -> void {
   // Lua binding: Action
-  auto ut_Action = namespace_table.new_usertype<LDJ::FsmAction<State *>>(
-    "Action",
-    sol::constructors<LDJ::FsmAction<State *>(State *, std::vector<State *>, std::function<LDJ::FsmActionResult()>)>());
-
-  // Lua binding: States
-  namespace_table["state"] = lua.create_table();
-  T::LuaBindStates(namespace_table["state"]);
-
-  // Lua binding: Class members
-  T::LuaBindMembers(namespace_table);
+  auto ut_Action = lua.new_usertype<LDJ::FsmAction<State *>>("Action");
 
   // Lua binding: Fsm
   using Fsm = LDJ::Fsm<T *, State *>;
-  auto ut_Fsm = namespace_table.new_usertype<Fsm>("Fsm", sol::constructors<Fsm()>());
+  auto ut_Fsm = lua.new_usertype<Fsm>("Fsm");
   ut_Fsm["owner"] = &Fsm::owner;
   ut_Fsm["current_binding"] = &Fsm::current_binding;
   ut_Fsm["previous_binding"] = &Fsm::previous_binding;
@@ -77,19 +59,37 @@ inline auto prepare_fsm_lua(sol::state &lua, std::string name) -> void {
                   static_cast<LDJ::FsmTransition *(Fsm::*)(LDJ::FsmTransition *transition)>(&Fsm::SkipCurrent));
 }
 
+template <typename FsmBase, typename StateBase, typename FsmT, typename StateT>
+inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> LDJ::Fsm<FsmBase *, StateBase *> * {
+  // Lua binding: States table
+  lua["State"] = lua.create_table();
+
+  // Lua binding: Action
+  lua["Action"] = [](StateT *state, std::vector<StateT *> extra, std::function<LDJ::FsmActionResult()> fn_result) {
+    std::vector<StateBase *> v(extra.size());
+    for (size_t i = 0; i < extra.size(); ++i)
+      v[i] = dynamic_cast<StateBase *>(extra[i]);
+
+    return LDJ::FsmAction<StateBase *>(state, v, fn_result);
+  };
+
+  // Create a new Fsm
+  auto fsm = new LDJ::Fsm<FsmBase *, StateBase *>(self);
+  lua["Fsm"] = fsm;
+
+  // get owner as current class
+  lua["This"] = dynamic_cast<FsmT *>(self);
+
+  return fsm;
+}
+
 template <typename T, typename State>
-inline auto get_fsm_lua(sol::state &lua, std::string script_path) -> LDJ::Fsm<T *, State *> * {
-  // Get Fsm from a lua script
+inline auto execute_fsm_lua(sol::state &lua, std::string script_path) -> void {
+  // Run lua script
   try {
-    sol::optional<LDJ::Fsm<T *, State *> *> opt_fsm = lua.script_file(script_path);
-    if (opt_fsm) {
-      return opt_fsm.value();
-    } else {
-      return nullptr;
-    }
+    lua.script_file(script_path);
   } catch (const std::exception &e) {
     fsm_log(e.what());
-    return nullptr;
   }
 }
 

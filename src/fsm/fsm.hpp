@@ -119,6 +119,7 @@ public:
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
   Fsm() = default;
+  Fsm(T owner);
   ~Fsm();
 
 private:
@@ -138,8 +139,6 @@ private:
 public:
   bool print_log = false;
 
-  auto Init(T owner) -> void;
-
   auto NewTransition(std::string name) -> FsmTransition *;
 
   auto BindDefault(FsmTransition *default_transition, FsmAction<State> default_action) -> Fsm<T, State> *;
@@ -157,15 +156,13 @@ public:
 };
 
 template <typename T, typename State>
+Fsm<T, State>::Fsm(T owner) : owner(owner) {}
+
+template <typename T, typename State>
 Fsm<T, State>::~Fsm() {
   for (auto t : transitions) {
     delete t;
   }
-}
-
-template <typename T, typename State>
-auto Fsm<T, State>::Init(T owner) -> void {
-  this->owner = owner;
 }
 
 template <typename T, typename State>

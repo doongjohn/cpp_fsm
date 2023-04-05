@@ -1,10 +1,12 @@
 {
     "diagnostics.globals": [
+        "log",
+        "State",
+        "Fsm",
+        "This",
         "FsmContinue",
         "ActionResult",
-        "Character1",
-        "Character2",
-        "Character3"
+        "Action"
     ],
-    "workspace.checkThirdParty": false
+    "workspace.checkThirdParty": false,
 }

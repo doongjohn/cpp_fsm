@@ -1,7 +1,7 @@
 # backward (stack trace printer)
 # https://github.com/bombela/backward-cpp
 if (UNIX AND NOT APPLE)
-  add_library(backward STATIC
+  add_library(backward OBJECT
     vendor/backward/backward.cpp)
 
   target_compile_features(backward
@@ -49,7 +49,10 @@ if (MSVC)
   target_link_libraries(example
     PRIVATE cpp_fsm_shared)
 elseif (UNIX AND NOT APPLE)
+  target_compile_options(example
+    PRIVATE -Wno-unused-parameter)
   target_link_libraries(example
     PRIVATE cpp_fsm_shared
+    PRIVATE $<$<CONFIG:Debug>:dw>
     PRIVATE $<$<CONFIG:Debug>:backward>)
 endif()
