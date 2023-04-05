@@ -8,7 +8,7 @@
   void OnExit(T_DERIVED *owner); \
   void OnUpdate(T_DERIVED *owner);
 
-#define STATE_API_IMPL(STATE, T_SUPER, T_DERIVED) \
+#define STATE_API_IMPL(T_SUPER, T_DERIVED, STATE) \
   void STATE::OnEnter(T_SUPER *owner) { \
     OnEnter(dynamic_cast<T_DERIVED *>(owner)); \
   } \

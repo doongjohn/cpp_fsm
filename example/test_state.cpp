@@ -15,12 +15,12 @@ void TestExtra::OnEnter(TestCharacter *owner) {
 void TestExtra::OnExit(TestCharacter *owner) {}
 void TestExtra::OnUpdate(TestCharacter *owner) {}
 
-STATE_API_IMPL(TestState1, TestCharacter, TestCharacter1)
+STATE_API_IMPL(TestCharacter, TestCharacter1, TestState1)
 void TestState1::OnEnter(TestCharacter1 *owner) {}
 void TestState1::OnExit(TestCharacter1 *owner) {}
 void TestState1::OnUpdate(TestCharacter1 *owner) {}
 
-STATE_API_IMPL(TestState2, TestCharacter, TestCharacter2)
+STATE_API_IMPL(TestCharacter, TestCharacter2, TestState2)
 void TestState2::OnEnter(TestCharacter2 *owner) {}
 void TestState2::OnExit(TestCharacter2 *owner) {}
 void TestState2::OnUpdate(TestCharacter2 *owner) {}
