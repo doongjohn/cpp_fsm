@@ -4,9 +4,9 @@
   void OnEnter(T_SUPER *owner) override; \
   void OnExit(T_SUPER *owner) override; \
   void OnUpdate(T_SUPER *owner) override; \
-  void OnEnter(T_DERIVED *owner); \
-  void OnExit(T_DERIVED *owner); \
-  void OnUpdate(T_DERIVED *owner);
+  static void OnEnter(T_DERIVED *owner); \
+  static void OnExit(T_DERIVED *owner); \
+  static void OnUpdate(T_DERIVED *owner);
 
 #define STATE_API_IMPL(T_SUPER, T_DERIVED, STATE) \
   void STATE::OnEnter(T_SUPER *owner) { \

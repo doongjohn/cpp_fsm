@@ -10,12 +10,14 @@ class TestCharacter {
   using Self = TestCharacter;
   using State = TestStateBase;
   using Extra = TestExtra;
-  friend State;
-  friend Extra;
 
-protected:
+public:
+  inline static sol::state lua = LDJ::init_fsm_lua();
+  LDJ::Fsm<Self *, State *> *fsm;
+
   std::string name = "John";
 
+protected:
   template <typename T>
   static auto LuaBindMembers(sol::state &lua, std::string class_name) -> sol::usertype<T> {
     auto ut = lua.new_usertype<T>(class_name);
@@ -24,9 +26,6 @@ protected:
   }
 
 public:
-  inline static sol::state lua = LDJ::init_fsm_lua();
-  LDJ::Fsm<Self *, State *> *fsm;
-
   TestCharacter() = default;
   virtual ~TestCharacter() = default;
 };

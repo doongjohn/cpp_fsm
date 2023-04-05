@@ -6,8 +6,6 @@ class TestCharacter2 : public TestCharacter {
   using Self = TestCharacter2;
   using State = TestState2;
   using Extra = TestExtra;
-  friend State;
-  friend Extra;
 
 public:
   inline static State *state_default = new TestState2();
