@@ -1,6 +1,6 @@
 #pragma once
 
-#define STATE_API_HEADER(T_SUPER, T_DERIVED) \
+#define STATE_API_DEF(T_SUPER, T_DERIVED) \
   void OnEnter(T_SUPER *owner) override; \
   void OnExit(T_SUPER *owner) override; \
   void OnUpdate(T_SUPER *owner) override; \
@@ -38,12 +38,10 @@ public:
 
 class TestState1 : public TestStateBase {
 public:
-  TestState1() = default;
-  STATE_API_HEADER(class TestCharacter, class TestCharacter1)
+  STATE_API_DEF(class TestCharacter, class TestCharacter1)
 };
 
 class TestState2 : public TestStateBase {
 public:
-  TestState2() = default;
-  STATE_API_HEADER(class TestCharacter, class TestCharacter2)
+  STATE_API_DEF(class TestCharacter, class TestCharacter2)
 };

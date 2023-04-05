@@ -10,10 +10,10 @@ class TestCharacter1 : public TestCharacter {
   friend Extra;
 
 public:
-  static State *state_default;
-  static State *state_hello;
-  static State *state_wow;
-  static State *state_pow;
+  inline static State *state_default = new TestState1();
+  inline static State *state_hello = new TestState1();
+  inline static State *state_wow = new TestState1();
+  inline static State *state_pow = new TestState1();
 
   int power = 10;
 
@@ -36,8 +36,3 @@ public:
     LDJ::execute_fsm_lua<TestCharacter, TestStateBase>(TestCharacter::lua, "example/lua/character1.lua");
   }
 };
-
-inline TestState1 *TestCharacter1::state_default = new TestState1();
-inline TestState1 *TestCharacter1::state_hello = new TestState1();
-inline TestState1 *TestCharacter1::state_wow = new TestState1();
-inline TestState1 *TestCharacter1::state_pow = new TestState1();

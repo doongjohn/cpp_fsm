@@ -24,11 +24,9 @@ protected:
   }
 
 public:
-  static sol::state lua;
+  inline static sol::state lua = LDJ::init_fsm_lua();
   LDJ::Fsm<Self *, State *> *fsm;
 
   TestCharacter() = default;
   virtual ~TestCharacter() = default;
 };
-
-inline sol::state TestCharacter::lua = LDJ::init_fsm_lua();
