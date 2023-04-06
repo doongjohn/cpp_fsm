@@ -29,7 +29,7 @@ public:
   virtual void OnUpdate(class TestCharacter *owner);
 };
 
-class TestExtra : public TestStateBase {
+class TestStateEx : public TestStateBase {
 public:
   void OnEnter(class TestCharacter *owner) override;
   void OnExit(class TestCharacter *owner) override;

@@ -1,5 +1,5 @@
 local action_default = Action(State.default, {}, nil)
-local action_hello = Action(State.hello, {}, nil)
+local action_hello = Action(State.hello, { State.state_ex }, nil)
 local action_wow = Action(State.wow, {}, nil)
 local action_pow = Action(State.pow, {}, nil)
 local action_combo1 = Action(State.wow, {}, function() return ActionResult.Completed end)

@@ -4,47 +4,49 @@ using namespace LDJ;
 
 // transition to specified action after transition
 auto FsmTransition::DoAction(std::string binding) -> FsmTransition * {
-  immediate_binding = binding;
+  immediate_binding = std::move(binding);
   return this;
 }
 
 // run on any bindings
 auto FsmTransition::WhenAny(std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition * {
-  transition_logics.push_back(TransitionLogic(MODE_ANY, {}, fn_get_next));
+  transition_logics.push_back(TransitionLogic(MODE_ANY, {}, std::move(fn_get_next)));
   return this;
 }
 
 // run on specified bindings
-auto FsmTransition::When(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
-  -> FsmTransition * {
+auto FsmTransition::When(std::initializer_list<std::string> bindings,
+                         const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
   transition_logics.emplace_back(MODE_MATCH, bindings, fn_get_next);
   return this;
 }
-auto FsmTransition::When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
-  -> FsmTransition * {
+auto FsmTransition::When(const std::vector<std::string> &bindings,
+                         const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
   transition_logics.emplace_back(MODE_MATCH, bindings, fn_get_next);
   return this;
 }
-auto FsmTransition::When(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition * {
-  return When({binding}, fn_get_next);
+auto FsmTransition::When(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next)
+  -> FsmTransition * {
+  return When({std::move(binding)}, fn_get_next);
 }
 
 // run on not specified binding
 auto FsmTransition::WhenNot(std::initializer_list<std::string> bindings,
-                            std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition * {
+                            const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
   transition_logics.emplace_back(MODE_NOT_MATCH, bindings, fn_get_next);
   return this;
 }
-auto FsmTransition::WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+auto FsmTransition::WhenNot(const std::vector<std::string> &bindings,
+                            const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
+  transition_logics.emplace_back(MODE_NOT_MATCH, bindings, fn_get_next);
+  return this;
+}
+auto FsmTransition::WhenNot(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next)
   -> FsmTransition * {
-  transition_logics.emplace_back(MODE_NOT_MATCH, bindings, fn_get_next);
-  return this;
-}
-auto FsmTransition::WhenNot(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition * {
-  return WhenNot(std::vector{binding}, fn_get_next);
+  return WhenNot(std::vector{std::move(binding)}, fn_get_next);
 }
 
-auto FsmTransition::RunTransitionLogic(std::string current_binding) -> std::optional<FsmTransitionResult> {
+auto FsmTransition::RunTransitionLogic(const std::string &current_binding) -> std::optional<FsmTransitionResult> {
   // do binding
   if (immediate_binding != "") {
     std::string result = immediate_binding;

@@ -14,7 +14,7 @@ struct FsmAssert {
 
 inline std::function<void(bool)> FsmAssert::fn_assert = nullptr;
 
-inline auto fsm_assert_msg(bool expr, std::string msg) -> void {
+inline auto fsm_assert_msg(bool expr, const std::string& msg) -> void {
   if (!expr)
     fsm_log("Assertion failed: " + msg);
 

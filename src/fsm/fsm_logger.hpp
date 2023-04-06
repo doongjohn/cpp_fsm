@@ -12,7 +12,7 @@ struct FsmLogger {
 
 inline std::function<void(std::string, std::string)> FsmLogger::fn_logger = nullptr;
 
-inline auto fsm_log(std::string msg, std::string prefix = "[FSM] ") -> void {
+inline auto fsm_log(const std::string &msg, const std::string &prefix = "[FSM] ") -> void {
   if (FsmLogger::fn_logger) {
     FsmLogger::fn_logger(msg, prefix);
   } else {

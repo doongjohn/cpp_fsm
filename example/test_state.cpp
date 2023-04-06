@@ -9,11 +9,11 @@ void TestStateBase::OnEnter(TestCharacter *owner) {}
 void TestStateBase::OnExit(TestCharacter *owner) {}
 void TestStateBase::OnUpdate(TestCharacter *owner) {}
 
-void TestExtra::OnEnter(TestCharacter *owner) {
+void TestStateEx::OnEnter(TestCharacter *owner) {
   std::cout << "Hello! I'm " << owner->name << ".\n";
 }
-void TestExtra::OnExit(TestCharacter *owner) {}
-void TestExtra::OnUpdate(TestCharacter *owner) {}
+void TestStateEx::OnExit(TestCharacter *owner) {}
+void TestStateEx::OnUpdate(TestCharacter *owner) {}
 
 STATE_API_IMPL(TestCharacter, TestCharacter1, TestState1)
 void TestState1::OnEnter(TestCharacter1 *owner) {}

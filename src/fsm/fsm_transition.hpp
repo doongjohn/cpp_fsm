@@ -59,19 +59,21 @@ public:
   auto WhenAny(std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
 
   // run on specified bindings
-  auto When(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+  auto When(std::initializer_list<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
-  auto When(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
-  auto When(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+  auto When(const std::vector<std::string> &bindings, const std::function<FsmTransitionResult()> &fn_get_next)
+    -> FsmTransition *;
+  auto When(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition *;
 
   // run on not specified binding
-  auto WhenNot(std::initializer_list<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next)
+  auto WhenNot(std::initializer_list<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
-  auto WhenNot(std::vector<std::string> bindings, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
-  auto WhenNot(std::string binding, std::function<FsmTransitionResult()> fn_get_next) -> FsmTransition *;
+  auto WhenNot(const std::vector<std::string> &bindings, const std::function<FsmTransitionResult()> &fn_get_next)
+    -> FsmTransition *;
+  auto WhenNot(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition *;
 
   // for internal use only
-  auto RunTransitionLogic(std::string current_binding) -> std::optional<FsmTransitionResult>;
+  auto RunTransitionLogic(const std::string &current_binding) -> std::optional<FsmTransitionResult>;
 };
 
 } // namespace LDJ

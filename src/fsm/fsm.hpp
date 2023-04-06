@@ -167,7 +167,7 @@ Fsm<T, State>::~Fsm() {
 
 template <typename T, typename State>
 auto Fsm<T, State>::NewTransition(std::string name) -> FsmTransition * {
-  auto transition_ptr = new FsmTransition(name);
+  auto transition_ptr = new FsmTransition(std::move(name));
   transitions.push_back(transition_ptr);
   return transition_ptr;
 }
@@ -257,7 +257,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       // print trace
       if (print_log) {
         fsm_log("transition trace: (from most recent)");
-        for (auto trace : transition_trace)
+        for (const auto& trace : transition_trace)
           fsm_log(trace, "");
       }
 
