@@ -247,6 +247,8 @@ auto Fsm<T, State>::FsmUpdate() -> void {
   cur_transition_count = 0;
   bool b_check_next_transition = true;
   while (b_check_next_transition) {
+    b_check_next_transition = false;
+
     // check transition count
     cur_transition_count += 1;
     if (cur_transition_count > max_transition_count) {
@@ -329,8 +331,6 @@ auto Fsm<T, State>::FsmUpdate() -> void {
 
     switch (next.index()) {
     case 0: {
-      b_check_next_transition = false;
-
       // get next binding
       std::string next_binding = std::get<0>(next);
       if (!actions.contains(next_binding))
@@ -371,10 +371,12 @@ auto Fsm<T, State>::FsmUpdate() -> void {
         // change transition
         current_transition = transition;
         // update transition trace
-        transition_trace.front() += " -> " + current_transition->GetName();
+        transition_trace.front() += " -> " + transition->GetName();
+
+        // check next transition
+        b_check_next_transition = true;
       } else {
         // FsmContinue
-        b_check_next_transition = false;
       }
     } break;
     }

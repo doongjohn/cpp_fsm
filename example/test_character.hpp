@@ -27,7 +27,7 @@ protected:
     return ut;
   }
   static auto LuaBindStates() -> void {
-    lua["State"]["state_ex"] = ex_hello;
+    lua["State"]["ex_hello"] = ex_hello;
   }
 
 public:
