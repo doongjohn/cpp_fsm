@@ -15,7 +15,7 @@ public:
   inline static sol::state lua = LDJ::init_fsm_lua();
   LDJ::Fsm<Self *, State *> *fsm;
 
-  inline static State *state_ex = new TestStateEx();
+  inline static State *ex_hello = new TestStateEx();
 
   std::string name = "John";
 
@@ -27,7 +27,7 @@ protected:
     return ut;
   }
   static auto LuaBindStates() -> void {
-    lua["State"]["state_ex"] = state_ex;
+    lua["State"]["state_ex"] = ex_hello;
   }
 
 public:
