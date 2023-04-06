@@ -257,7 +257,7 @@ auto Fsm<T, State>::FsmUpdate() -> void {
       // print trace
       if (print_log) {
         fsm_log("transition trace: (from most recent)");
-        for (const auto& trace : transition_trace)
+        for (const auto &trace : transition_trace)
           fsm_log(trace, "");
       }
 
@@ -372,6 +372,9 @@ auto Fsm<T, State>::FsmUpdate() -> void {
         current_transition = transition;
         // update transition trace
         transition_trace.front() += " -> " + current_transition->GetName();
+      } else {
+        // FsmContinue
+        b_check_next_transition = false;
       }
     } break;
     }

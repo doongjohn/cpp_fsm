@@ -14,9 +14,9 @@ public:
     TestCharacter2::LuaBindMembers(TestCharacter::lua);
     return 0;
   }
-};
 
-int asdsad = FsmLuaBinder::Init();
+  inline static int FsmLuaBind = FsmLuaBinder::Init();
+};
 
 auto main() -> int {
   std::vector<TestCharacter *> characters;

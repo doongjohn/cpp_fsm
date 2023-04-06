@@ -12,5 +12,9 @@ fsm
   :bind('hello', action_hello)
 
 tr1
-  :when('default', function() return 'hello' end)
-  :when('hello', function() return 'default' end)
+  :when('default', function()
+    return 'hello'
+  end)
+  :when('hello', function()
+    return 'default'
+  end)
