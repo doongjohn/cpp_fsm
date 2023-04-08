@@ -24,9 +24,9 @@ public:
   TestStateBase() = default;
   virtual ~TestStateBase() = default;
 
-  virtual void OnEnter(class TestCharacter *owner);
-  virtual void OnExit(class TestCharacter *owner);
-  virtual void OnUpdate(class TestCharacter *owner);
+  virtual void OnEnter(class TestCharacter *owner) = 0;
+  virtual void OnExit(class TestCharacter *owner) = 0;
+  virtual void OnUpdate(class TestCharacter *owner) = 0;
 };
 
 class TestStateEx : public TestStateBase {

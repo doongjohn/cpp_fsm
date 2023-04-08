@@ -27,24 +27,23 @@ inline auto init_fsm_lua() -> sol::state {
     sol::overload(static_cast<FnWhenVec>(&FsmTransition::WhenNot), static_cast<FnWhen>(&FsmTransition::WhenNot));
 
   lua["FsmContinue"] = FsmContinue;
-  lua.new_enum<FsmActionResult>("ActionResult", {
-                                                  {"Running", FsmActionResult::Running},
-                                                  {"Completed", FsmActionResult::Completed},
-                                                  {"ActionBreak", FsmActionResult::Break},
-                                                });
+  lua.new_enum<FsmActionStatus>("Status", {
+                                            {"Running", FsmActionStatus::Running},
+                                            {"Completed", FsmActionStatus::Completed},
+                                            {"Break", FsmActionStatus::Break},
+                                          });
+  lua["Duration"] = [](float f) {
+    return FsmActionDuration{f};
+  };
 
   return lua;
 }
 
 template <typename T, typename State>
 inline auto prepare_fsm_lua_base(sol::state &lua) -> void {
-  // Lua binding: Action
-  auto ut_Action = lua.new_usertype<FsmAction<State *>>("Action");
-
   // Lua binding: Fsm
   using Fsm = Fsm<T *, State *>;
   auto ut_Fsm = lua.new_usertype<Fsm>("Fsm");
-  ut_Fsm["owner"] = &Fsm::owner;
   ut_Fsm["current_binding"] = &Fsm::current_binding;
   ut_Fsm["previous_binding"] = &Fsm::previous_binding;
   ut_Fsm["new_transition"] = &Fsm::NewTransition;
@@ -68,23 +67,19 @@ inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase
                               std::function<FsmActionResult()> fn_result) {
     return FsmAction<StateBase *>(state, extra, fn_result);
   };
-  const auto new_action1 = [](StateT *state, std::vector<StateBase *> extra,
+  const auto new_action1 = [&](StateBase *state, std::vector<StateBase *> extra, const float *timer,
+                               std::function<FsmActionResult()> fn_result) {
+    return FsmAction<StateBase *>(state, extra, timer, fn_result);
+  };
+  const auto new_action2 = [](StateT *state, std::vector<StateBase *> extra,
                               std::function<FsmActionResult()> fn_result) {
     return FsmAction<StateBase *>(state, extra, fn_result);
   };
-  const auto new_action2 = [](StateBase *state, std::vector<StateT *> extra,
-                              std::function<FsmActionResult()> fn_result) {
-    std::vector<StateBase *> v(extra.size());
-    for (size_t i = 0; i < extra.size(); ++i)
-      v[i] = dynamic_cast<StateBase *>(extra[i]);
-    return FsmAction<StateBase *>(state, v, fn_result);
+  const auto new_action3 = [&](StateT *state, std::vector<StateBase *> extra, const float *timer,
+                               std::function<FsmActionResult()> fn_result) {
+    return FsmAction<StateBase *>(state, extra, timer, fn_result);
   };
-  const auto new_action3 = [](StateT *state, std::vector<StateT *> extra, std::function<FsmActionResult()> fn_result) {
-    std::vector<StateBase *> v(extra.size());
-    for (size_t i = 0; i < extra.size(); ++i)
-      v[i] = dynamic_cast<StateBase *>(extra[i]);
-    return FsmAction<StateBase *>(state, v, fn_result);
-  };
+
   lua["Action"] = sol::overload(new_action0, new_action1, new_action2, new_action3);
 
   // Create a new Fsm
@@ -97,7 +92,6 @@ inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase
   return fsm;
 }
 
-template <typename T, typename State>
 inline auto execute_fsm_lua(sol::state &lua, const std::string &script_path) -> void {
   // Run lua script
   try {

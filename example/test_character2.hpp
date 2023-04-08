@@ -5,7 +5,6 @@
 class TestCharacter2 : public TestCharacter {
   using Self = TestCharacter2;
   using State = TestState2;
-  using Extra = TestStateEx;
 
 public:
   inline static State *state_default = new TestState2();
@@ -32,6 +31,6 @@ public:
     fsm->print_log = true;
 
     LuaBindStates();
-    LDJ::execute_fsm_lua<TestCharacter, TestStateBase>(lua, "example/lua/character2.lua");
+    LDJ::execute_fsm_lua(lua, "example/lua/character2.lua");
   }
 };

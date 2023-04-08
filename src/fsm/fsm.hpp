@@ -18,22 +18,32 @@
 
 namespace LDJ {
 
-enum FsmActionResult {
+enum FsmActionStatus {
   Running,
   Completed,
   Break,
 };
+struct FsmActionDuration {
+  float duration;
+};
+using FsmActionResult = std::variant<FsmActionStatus, FsmActionDuration>;
 
 template <typename State>
 class FsmAction {
 public:
   State state;
   std::vector<State> extras;
+  const float *timer;
+  float internal_timer;
   std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;
   FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
+  FsmAction(State state, std::initializer_list<State> extras, const float *timer,
+            std::function<FsmActionResult()> fn_result = nullptr);
   FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
+  FsmAction(State state, std::vector<State> extras, const float *timer,
+            std::function<FsmActionResult()> fn_result = nullptr);
 
   // Copy constructor
   FsmAction(const FsmAction &other);
@@ -64,6 +74,7 @@ public:
       for (auto &e : extras)
         e.OnExit(owner);
     }
+    internal_timer = 0;
   }
 
   template <typename T>
@@ -83,21 +94,34 @@ public:
 template <typename State>
 FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras,
                             std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(nullptr), internal_timer(0), fn_result(std::move(fn_result)) {}
+
+template <typename State>
+FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras, const float *timer,
+                            std::function<FsmActionResult()> fn_result)
+    : state(state), extras(std::move(extras)), timer(timer), internal_timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
 FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(nullptr), internal_timer(0), fn_result(std::move(fn_result)) {}
+
+template <typename State>
+FsmAction<State>::FsmAction(State state, std::vector<State> extras, const float *timer,
+                            std::function<FsmActionResult()> fn_result)
+    : state(state), extras(std::move(extras)), timer(timer), internal_timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
 FsmAction<State>::FsmAction(const FsmAction &other)
-    : state(other.state), extras(other.extras), fn_result(other.fn_result) {}
+    : state(other.state), extras(other.extras), timer(other.timer), internal_timer(other.internal_timer),
+      fn_result(other.fn_result) {}
 
 template <typename State>
 auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
   if (this != &other) {
     state = other.state;
     extras = other.extras;
+    timer = other.timer;
+    internal_timer = other.internal_timer;
     fn_result = other.fn_result;
   }
   return *this;
@@ -114,7 +138,6 @@ public:
   FsmAction<State> current_action;
   FsmTransition *current_transition = nullptr;
 
-  std::function<void()> fn_on_action_change = nullptr;
   std::function<void()> fn_err_excessive_transition = nullptr;
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
@@ -151,7 +174,7 @@ public:
   auto SkipCurrent(FsmTransition *transition) -> FsmTransition *;
 
   auto FsmStart() -> void;
-  auto FsmUpdate() -> void;
+  auto FsmUpdate(float delta_time) -> void;
   auto Update() -> void;
 };
 
@@ -243,7 +266,16 @@ auto Fsm<T, State>::FsmStart() -> void {
 }
 
 template <typename T, typename State>
-auto Fsm<T, State>::FsmUpdate() -> void {
+auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
+  // increment timer
+  float current_timer = current_action.internal_timer;
+  if (current_action.timer) {
+    current_timer = *current_action.timer;
+  } else {
+    current_action.internal_timer += delta_time;
+  }
+
+  // do transition
   cur_transition_count = 0;
   bool b_check_next_transition = true;
   while (b_check_next_transition) {
@@ -272,15 +304,6 @@ auto Fsm<T, State>::FsmUpdate() -> void {
     if ((int)transition_trace.size() > max_transition_count)
       transition_trace.pop_back();
 
-    // get current action result
-    std::optional<FsmActionResult> action_result;
-    if (current_action.fn_result != nullptr)
-      action_result = current_action.fn_result();
-
-    // check current action is ended
-    if (action_result.has_value() && action_result != Running)
-      b_is_waiting = false;
-
     // get next transition result
     std::optional<FsmTransitionResult> opt_next = current_transition->RunTransitionLogic(current_binding);
     if (!opt_next.has_value()) {
@@ -289,19 +312,40 @@ auto Fsm<T, State>::FsmUpdate() -> void {
         fn_err_no_possible_transition();
 
       fsm_assert_msg(false, "No transition is possible from the current binding : \"" + current_binding + "\"");
+      return;
     }
     auto next = opt_next.value();
+
+    // get current action status
+    std::optional<FsmActionStatus> action_status = std::nullopt;
+    if (current_action.fn_result != nullptr) {
+      auto action_result = current_action.fn_result();
+      switch (action_result.index()) {
+      case 0: // <-- FsmActionStatus
+        action_status = std::get<0>(action_result);
+        break;
+      case 1: // <-- FsmActionDuration
+        float action_dur = std::get<1>(action_result).duration;
+        action_status = current_timer >= action_dur ? Completed : Running;
+        break;
+      }
+    }
+
+    // check current action is ended
+    if (action_status.has_value() && action_status != Running)
+      b_is_waiting = false;
 
     // wait for an action to end
     if (b_is_waiting)
       return;
 
     // sequenced action
-    if (!b_skip_waiting && current_action_list && current_action.fn_result != nullptr) {
-      if (action_result == Completed) {
+    if (!b_skip_waiting && current_action_list && action_status.has_value()) {
+      if (action_status == Completed) {
         current_action.OnExit(owner);
 
-        if (current_action_list.value().size() > current_action_list_index + 1) {
+        if (current_action_list.value().size() > 1 &&
+            current_action_list.value().size() > current_action_list_index + 1) {
           // run next action
           b_is_waiting = true;
           current_action_list_index += 1;
@@ -309,16 +353,18 @@ auto Fsm<T, State>::FsmUpdate() -> void {
 
           if (print_log)
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
+
           current_action.OnEnter(owner);
           return;
         }
       }
 
-      if (action_result != Running) {
+      if (current_action_list.value().size() > 1 && action_status != Running) {
         // sequence ended
         b_is_waiting = false;
         current_action_list_index = 0;
         current_action_list = std::nullopt;
+        b_check_next_transition = true;
         continue;
       }
     }
@@ -330,11 +376,13 @@ auto Fsm<T, State>::FsmUpdate() -> void {
     }
 
     switch (next.index()) {
-    case 0: {
+    case 0: { // <-- string
       // get next binding
       std::string next_binding = std::get<0>(next);
-      if (!actions.contains(next_binding))
+      if (!actions.contains(next_binding)) {
         fsm_assert_msg(false, "Unbound action: \"" + next_binding + "\"");
+        return;
+      }
 
       if (b_reenter || current_binding != next_binding) {
         b_reenter = false;
@@ -358,26 +406,22 @@ auto Fsm<T, State>::FsmUpdate() -> void {
             fsm_log("action enter: " + current_binding);
           }
         }
-        current_action.OnEnter(owner);
 
-        if (fn_on_action_change)
-          fn_on_action_change();
+        current_action.OnEnter(owner);
       }
     } break;
-    case 1: {
+    case 1: { // <-- FsmTransition *
       // get next transition
       FsmTransition *transition = std::get<1>(next);
       if (transition) {
-        // change transition
-        current_transition = transition;
         // update transition trace
         transition_trace.front() += " -> " + transition->GetName();
-
+        // change transition
+        current_transition = transition;
         // check next transition
         b_check_next_transition = true;
-      } else {
-        // FsmContinue
       }
+      // FsmContinue
     } break;
     }
   }

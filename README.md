@@ -85,7 +85,7 @@ Character::lua["State"]["default"] = Character::state_default;
 Character::lua["State"]["hello"] = Character::state_hello;
 Character::lua["State"]["wow"] = Character::state_wow;
 Character::lua["State"]["pow"] = Character::state_pow;
-LDJ::execute_fsm_lua<CharacterBase, StateBase>(Character::lua, "lua/character.lua");
+LDJ::execute_fsm_lua(Character::lua, "lua/character.lua");
 ```
 
 ## Unreal engine

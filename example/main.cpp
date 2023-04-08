@@ -39,7 +39,7 @@ auto main() -> int {
   while (true) {
     for (size_t i = 0; i < characters.size(); ++i) {
       std::cout << "character " << i << " ";
-      characters[i]->fsm->FsmUpdate();
+      characters[i]->fsm->FsmUpdate(1);
       characters[i]->fsm->Update();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
