@@ -1,7 +1,7 @@
 local fsm = Fsm
-local this = This
-print(this.name)
-print('power = ' .. tostring(this.power))
+local owner = Owner
+print(owner.name)
+print('power = ' .. tostring(owner.power))
 
 local action_default = Action(State.default, {}, nil)
 local action_hello = Action(State.hello, { State.ex_hello }, nil)

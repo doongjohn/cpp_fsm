@@ -34,18 +34,13 @@ public:
   State state;
   std::vector<State> extras;
 
-  const float *timer; // <-- custom timer
-  float internal_timer;
+  float timer;
 
   std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;
   FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
-  FsmAction(State state, std::initializer_list<State> extras, const float *timer,
-            std::function<FsmActionResult()> fn_result = nullptr);
   FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
-  FsmAction(State state, std::vector<State> extras, const float *timer,
-            std::function<FsmActionResult()> fn_result = nullptr);
 
   // Copy constructor
   FsmAction(const FsmAction &other);
@@ -76,7 +71,7 @@ public:
       for (auto &e : extras)
         e.OnExit(owner);
     }
-    internal_timer = 0;
+    timer = 0;
   }
 
   template <typename T>
@@ -96,26 +91,15 @@ public:
 template <typename State>
 FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras,
                             std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(nullptr), internal_timer(0), fn_result(std::move(fn_result)) {}
-
-template <typename State>
-FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras, const float *timer,
-                            std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(timer), internal_timer(0), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
 FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(nullptr), internal_timer(0), fn_result(std::move(fn_result)) {}
-
-template <typename State>
-FsmAction<State>::FsmAction(State state, std::vector<State> extras, const float *timer,
-                            std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(timer), internal_timer(0), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
 FsmAction<State>::FsmAction(const FsmAction &other)
-    : state(other.state), extras(other.extras), timer(other.timer), internal_timer(other.internal_timer),
-      fn_result(other.fn_result) {}
+    : state(other.state), extras(other.extras), timer(other.timer), fn_result(other.fn_result) {}
 
 template <typename State>
 auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
@@ -123,7 +107,6 @@ auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
     state = other.state;
     extras = other.extras;
     timer = other.timer;
-    internal_timer = other.internal_timer;
     fn_result = other.fn_result;
   }
   return *this;
@@ -271,12 +254,8 @@ auto Fsm<T, State>::FsmStart() -> void {
 template <typename T, typename State>
 auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
   // increment timer
-  float current_timer = current_action.internal_timer;
-  if (current_action.timer) {
-    current_timer = *current_action.timer;
-  } else {
-    current_action.internal_timer += delta_time;
-  }
+  float current_timer = current_action.timer;
+  current_action.timer += delta_time;
 
   // do transition
   cur_transition_count = 0;
@@ -328,7 +307,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
         action_status = std::get<0>(action_result);
         break;
       case 1: // <-- FsmActionDuration
-        float action_dur = std::get<1>(action_result).duration;
+        float action_dur = std::max(std::get<1>(action_result).duration, 0.f);
         action_status = current_timer >= action_dur ? Completed : Running;
         break;
       }
@@ -437,11 +416,7 @@ auto Fsm<T, State>::Update() -> void {
 
 template <typename T, typename State>
 auto Fsm<T, State>::GetTimer() -> float & {
-  float &current_timer = current_action.internal_timer;
-  if (current_action.timer) {
-    current_timer = *current_action.timer;
-  }
-  return current_timer;
+  return current_action.timer;
 }
 
 } // namespace LDJ

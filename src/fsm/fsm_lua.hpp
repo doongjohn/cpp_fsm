@@ -68,26 +68,16 @@ inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase
                               std::function<FsmActionResult()> fn_result) {
     return FsmAction<StateBase *>(state, extra, fn_result);
   };
-  const auto new_action1 = [&](StateBase *state, std::vector<StateBase *> extra, const float *timer,
-                               std::function<FsmActionResult()> fn_result) {
-    return FsmAction<StateBase *>(state, extra, timer, fn_result);
-  };
-  const auto new_action2 = [](StateT *state, std::vector<StateBase *> extra,
+  const auto new_action1 = [](StateT *state, std::vector<StateBase *> extra,
                               std::function<FsmActionResult()> fn_result) {
     return FsmAction<StateBase *>(state, extra, fn_result);
   };
-  const auto new_action3 = [&](StateT *state, std::vector<StateBase *> extra, const float *timer,
-                               std::function<FsmActionResult()> fn_result) {
-    return FsmAction<StateBase *>(state, extra, timer, fn_result);
-  };
-  lua["Action"] = sol::overload(new_action0, new_action1, new_action2, new_action3);
+  lua["Action"] = sol::overload(new_action0, new_action1);
 
   // Create a new Fsm
   auto fsm = new Fsm<FsmBase *, StateBase *>(self);
   lua["Fsm"] = fsm;
-
-  // get owner as current class
-  lua["This"] = dynamic_cast<FsmT *>(self);
+  lua["Owner"] = dynamic_cast<FsmT *>(self); // <-- get owner as current class
 
   return fsm;
 }

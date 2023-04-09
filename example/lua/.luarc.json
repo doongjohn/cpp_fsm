@@ -2,12 +2,12 @@
     "diagnostics.globals": [
         "log",
         "Fsm",
-        "This",
+        "Owner",
         "State",
         "Action",
         "Status",
         "Duration",
-        "FsmContinue"
+        "FsmContinue",
     ],
     "workspace.checkThirdParty": false,
 }
