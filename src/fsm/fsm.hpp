@@ -33,8 +33,10 @@ class FsmAction {
 public:
   State state;
   std::vector<State> extras;
-  const float *timer;
+
+  const float *timer; // <-- custom timer
   float internal_timer;
+
   std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;
@@ -138,6 +140,7 @@ public:
   FsmAction<State> current_action;
   FsmTransition *current_transition = nullptr;
 
+  bool print_log = false;
   std::function<void()> fn_err_excessive_transition = nullptr;
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
@@ -160,8 +163,6 @@ private:
   std::list<std::string> transition_trace;
 
 public:
-  bool print_log = false;
-
   auto NewTransition(std::string name) -> FsmTransition *;
 
   auto BindDefault(FsmTransition *default_transition, FsmAction<State> default_action) -> Fsm<T, State> *;
@@ -176,6 +177,8 @@ public:
   auto FsmStart() -> void;
   auto FsmUpdate(float delta_time) -> void;
   auto Update() -> void;
+
+  auto GetTimer() -> float &;
 };
 
 template <typename T, typename State>
@@ -430,6 +433,15 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
 template <typename T, typename State>
 auto Fsm<T, State>::Update() -> void {
   current_action.OnUpdate(owner);
+}
+
+template <typename T, typename State>
+auto Fsm<T, State>::GetTimer() -> float & {
+  float &current_timer = current_action.internal_timer;
+  if (current_action.timer) {
+    current_timer = *current_action.timer;
+  }
+  return current_timer;
 }
 
 } // namespace LDJ

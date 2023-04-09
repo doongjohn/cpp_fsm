@@ -1,6 +1,6 @@
 local fsm = Fsm
 local this = This
-
+print(this.name)
 print('mana = ' .. tostring(this.mana))
 
 local action_default = Action(State.default, {}, nil)

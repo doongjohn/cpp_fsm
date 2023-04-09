@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -9,19 +8,18 @@
 namespace LDJ {
 
 struct FsmAssert {
-  static std::function<void(bool)> fn_assert;
+  inline static std::function<void(bool)> fn_assert = nullptr;
 };
 
-inline std::function<void(bool)> FsmAssert::fn_assert = nullptr;
-
-inline auto fsm_assert_msg(bool expr, const std::string& msg) -> void {
-  if (!expr)
+inline auto fsm_assert_msg(bool expr, const std::string &msg) -> void {
+  if (!expr) {
     fsm_log("Assertion failed: " + msg);
 
-  if (FsmAssert::fn_assert) {
-    FsmAssert::fn_assert(expr);
-  } else {
-    assert(expr);
+    if (FsmAssert::fn_assert) {
+      FsmAssert::fn_assert(expr);
+    } else {
+      throw msg;
+    }
   }
 }
 

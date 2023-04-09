@@ -1,8 +1,8 @@
-#define SOL_PRINT_ERRORS 1
-#include <sol/sol.hpp>
 #include <thread>
 
-#include "fsm/fsm_lua.hpp"
+#define SOL_PRINT_ERRORS 1
+#include <sol/sol.hpp>
+
 #include "test_character1.hpp"
 #include "test_character2.hpp"
 
@@ -12,10 +12,11 @@ public:
     LDJ::prepare_fsm_lua_base<TestCharacter, TestStateBase>(TestCharacter::lua);
     TestCharacter1::LuaBindMembers(TestCharacter::lua);
     TestCharacter2::LuaBindMembers(TestCharacter::lua);
+
     return 0;
   }
 
-  inline static int FsmLuaBind = FsmLuaBinder::Init();
+  inline static int init = FsmLuaBinder::Init();
 };
 
 auto main() -> int {

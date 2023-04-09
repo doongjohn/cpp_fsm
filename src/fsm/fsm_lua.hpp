@@ -13,6 +13,16 @@ inline auto init_fsm_lua() -> sol::state {
   // Lua binding: fsm_log
   lua["log"] = sol::overload(&fsm_log, [](const std::string &msg) { fsm_log(msg, "[FSM Lua] "); });
 
+  // Lua binding: FsmAction
+  lua.new_enum<FsmActionStatus>("Status", {
+                                            {"Running", FsmActionStatus::Running},
+                                            {"Completed", FsmActionStatus::Completed},
+                                            {"Break", FsmActionStatus::Break},
+                                          });
+  lua["Duration"] = [](float f) {
+    return FsmActionDuration{f};
+  };
+
   // Lua binding: FsmTransition
   using FnWhenVec =
     FsmTransition *(FsmTransition::*)(const std::vector<std::string> &, const std::function<FsmTransitionResult()> &);
@@ -25,16 +35,7 @@ inline auto init_fsm_lua() -> sol::state {
     sol::overload(static_cast<FnWhenVec>(&FsmTransition::When), static_cast<FnWhen>(&FsmTransition::When));
   ut_FsmTransition["when_not"] =
     sol::overload(static_cast<FnWhenVec>(&FsmTransition::WhenNot), static_cast<FnWhen>(&FsmTransition::WhenNot));
-
   lua["FsmContinue"] = FsmContinue;
-  lua.new_enum<FsmActionStatus>("Status", {
-                                            {"Running", FsmActionStatus::Running},
-                                            {"Completed", FsmActionStatus::Completed},
-                                            {"Break", FsmActionStatus::Break},
-                                          });
-  lua["Duration"] = [](float f) {
-    return FsmActionDuration{f};
-  };
 
   return lua;
 }
@@ -79,7 +80,6 @@ inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase
                                std::function<FsmActionResult()> fn_result) {
     return FsmAction<StateBase *>(state, extra, timer, fn_result);
   };
-
   lua["Action"] = sol::overload(new_action0, new_action1, new_action2, new_action3);
 
   // Create a new Fsm

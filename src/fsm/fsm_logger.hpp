@@ -7,10 +7,8 @@
 namespace LDJ {
 
 struct FsmLogger {
-  static std::function<void(std::string, std::string)> fn_logger;
+  inline static std::function<void(std::string, std::string)> fn_logger = nullptr;
 };
-
-inline std::function<void(std::string, std::string)> FsmLogger::fn_logger = nullptr;
 
 inline auto fsm_log(const std::string &msg, const std::string &prefix = "[FSM] ") -> void {
   if (FsmLogger::fn_logger) {
