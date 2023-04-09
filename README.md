@@ -91,13 +91,13 @@ LDJ::execute_fsm_lua(Character::lua, "lua/character.lua");
 ## Unreal engine
 
 ```cpp
-LDJ::FsmLogger::fn_logger = [](std::string msg, std::string prefix)
+LDJ::FsmLogger::fn_logger = [](std::string Msg, std::string Prefix)
 {
-    UE_LOG(LogTemp, Log, TEXT("%s"), *FString(UTF8_TO_TCHAR((prefix + msg).c_str())));
+    UE_LOG(LogTemp, Log, TEXT("%s"), *FString(UTF8_TO_TCHAR((Prefix + Msg).c_str())));
 };
 
-LDJ::FsmAssert::fn_assert = [](bool expr)
+LDJ::FsmAssert::fn_assert = [](const bool bExpr, const std::string Msg)
 {
-    check(expr);
+    checkf(bExpr, FString(UTF8_TO_TCHAR(Msg.c_str())));
 };
 ```
