@@ -3,6 +3,7 @@
 #ifdef _MSC_VER
 // https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4458
 #pragma warning(disable : 4458)
+#pragma warning(disable : 4800)
 #endif
 
 #include <functional>
