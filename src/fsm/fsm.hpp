@@ -50,9 +50,14 @@ public:
   template <typename T>
   auto OnEnter(T &owner) -> void {
     if constexpr (std::is_pointer_v<State>) {
-      state->OnEnter(owner);
-      for (auto &e : extras)
-        e->OnEnter(owner);
+      fsm_assert_msg(state, "State is null!");
+      if (state)
+        state->OnEnter(owner);
+      for (auto &ex : extras) {
+        fsm_assert_msg(ex, "State (ex) is null!");
+        if (ex)
+          ex->OnEnter(owner);
+      }
     } else {
       state.OnEnter(owner);
       for (auto &e : extras)
@@ -63,9 +68,14 @@ public:
   template <typename T>
   auto OnExit(T &owner) -> void {
     if constexpr (std::is_pointer_v<State>) {
-      state->OnExit(owner);
-      for (auto &e : extras)
-        e->OnExit(owner);
+      fsm_assert_msg(state, "State is null!");
+      if (state)
+        state->OnExit(owner);
+      for (auto &ex : extras) {
+        fsm_assert_msg(ex, "State (ex) is null!");
+        if (ex)
+          ex->OnExit(owner);
+      }
     } else {
       state.OnExit(owner);
       for (auto &e : extras)
@@ -77,9 +87,14 @@ public:
   template <typename T>
   auto OnUpdate(T &owner) -> void {
     if constexpr (std::is_pointer_v<State>) {
-      state->OnUpdate(owner);
-      for (auto &e : extras)
-        e->OnUpdate(owner);
+      fsm_assert_msg(state, "State is null!");
+      if (state)
+        state->OnUpdate(owner);
+      for (auto &ex : extras) {
+        fsm_assert_msg(ex, "State (ex) is null!");
+        if (ex)
+          ex->OnUpdate(owner);
+      }
     } else {
       state.OnUpdate(owner);
       for (auto &e : extras)

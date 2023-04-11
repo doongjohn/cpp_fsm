@@ -20,7 +20,7 @@ auto FsmTransition::When(std::initializer_list<std::string> bindings,
   transition_logics.emplace_back(MODE_MATCH, bindings, fn_get_next);
   return this;
 }
-auto FsmTransition::When(const std::vector<std::string> &bindings,
+auto FsmTransition::When(std::vector<std::string> bindings,
                          const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
   transition_logics.emplace_back(MODE_MATCH, bindings, fn_get_next);
   return this;
@@ -36,7 +36,7 @@ auto FsmTransition::WhenNot(std::initializer_list<std::string> bindings,
   transition_logics.emplace_back(MODE_NOT_MATCH, bindings, fn_get_next);
   return this;
 }
-auto FsmTransition::WhenNot(const std::vector<std::string> &bindings,
+auto FsmTransition::WhenNot(std::vector<std::string> bindings,
                             const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition * {
   transition_logics.emplace_back(MODE_NOT_MATCH, bindings, fn_get_next);
   return this;

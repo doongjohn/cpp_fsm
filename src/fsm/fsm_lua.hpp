@@ -25,7 +25,7 @@ inline auto init_fsm_lua() -> sol::state {
 
   // Lua binding: FsmTransition
   using FnWhenVec =
-    FsmTransition *(FsmTransition::*)(const std::vector<std::string> &, const std::function<FsmTransitionResult()> &);
+    FsmTransition *(FsmTransition::*)(std::vector<std::string>, const std::function<FsmTransitionResult()> &);
   using FnWhen = FsmTransition *(FsmTransition::*)(std::string, const std::function<FsmTransitionResult()> &);
 
   auto ut_FsmTransition = lua.new_usertype<FsmTransition>("FsmTransition");

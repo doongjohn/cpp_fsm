@@ -61,14 +61,14 @@ public:
   // run on specified bindings
   auto When(std::initializer_list<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
-  auto When(const std::vector<std::string> &bindings, const std::function<FsmTransitionResult()> &fn_get_next)
+  auto When(std::vector<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
   auto When(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition *;
 
   // run on not specified binding
   auto WhenNot(std::initializer_list<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
-  auto WhenNot(const std::vector<std::string> &bindings, const std::function<FsmTransitionResult()> &fn_get_next)
+  auto WhenNot(std::vector<std::string> bindings, const std::function<FsmTransitionResult()> &fn_get_next)
     -> FsmTransition *;
   auto WhenNot(std::string binding, const std::function<FsmTransitionResult()> &fn_get_next) -> FsmTransition *;
 

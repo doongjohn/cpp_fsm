@@ -37,6 +37,6 @@ tr2
   :when('hello', function()
     return 'wow'
   end)
-  :when('wow', function()
+  :when({'wow','pow'}, function()
     return tr1:do_action('combo')
   end)
