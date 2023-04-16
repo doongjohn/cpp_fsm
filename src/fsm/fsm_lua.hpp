@@ -43,14 +43,14 @@ inline auto init_fsm_lua() -> sol::state {
 template <typename T, typename State>
 inline auto prepare_fsm_lua_base(sol::state &lua) -> void {
   // Lua binding: Fsm
-  using Fsm = Fsm<T *, State *>;
+  using Fsm = Fsm<T, State>;
   auto ut_Fsm = lua.new_usertype<Fsm>("Fsm");
   ut_Fsm["current_binding"] = &Fsm::current_binding;
   ut_Fsm["previous_binding"] = &Fsm::previous_binding;
   ut_Fsm["new_transition"] = &Fsm::NewTransition;
   ut_Fsm["bind_default"] = &Fsm::BindDefault;
-  ut_Fsm["bind"] = sol::overload(static_cast<Fsm *(Fsm::*)(std::string, std::vector<FsmAction<State *>>)>(&Fsm::Bind),
-                                 static_cast<Fsm *(Fsm::*)(std::string, FsmAction<State *>)>(&Fsm::Bind));
+  ut_Fsm["bind"] = sol::overload(static_cast<Fsm *(Fsm::*)(std::string, std::vector<FsmAction<State>>)>(&Fsm::Bind),
+                                 static_cast<Fsm *(Fsm::*)(std::string, FsmAction<State>)>(&Fsm::Bind));
   ut_Fsm["reenter"] = &Fsm::Reenter;
   ut_Fsm["skip_current"] =
     sol::overload(static_cast<std::string (Fsm::*)(std::string)>(&Fsm::SkipCurrent),
@@ -58,7 +58,7 @@ inline auto prepare_fsm_lua_base(sol::state &lua) -> void {
 }
 
 template <typename FsmBase, typename StateBase, typename FsmT, typename StateT>
-inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase *, StateBase *> * {
+inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase, StateBase> * {
   // Lua binding: States table
   lua["State"] = lua.create_table();
 
@@ -66,16 +66,16 @@ inline auto prepare_fsm_lua_instance(sol::state &lua, FsmT *self) -> Fsm<FsmBase
   // NOTE: State can have at most one parent class.
   const auto new_action0 = [](StateBase *state, std::vector<StateBase *> extra,
                               std::function<FsmActionResult()> fn_result) {
-    return FsmAction<StateBase *>(state, extra, fn_result);
+    return FsmAction<StateBase>(state, extra, fn_result);
   };
   const auto new_action1 = [](StateT *state, std::vector<StateBase *> extra,
                               std::function<FsmActionResult()> fn_result) {
-    return FsmAction<StateBase *>(state, extra, fn_result);
+    return FsmAction<StateBase>(state, extra, fn_result);
   };
   lua["Action"] = sol::overload(new_action0, new_action1);
 
   // Create a new Fsm
-  auto fsm = new Fsm<FsmBase *, StateBase *>(self);
+  auto fsm = new Fsm<FsmBase, StateBase>(self);
   lua["Fsm"] = fsm;
   lua["Owner"] = dynamic_cast<FsmT *>(self); // <-- get owner as current class
 

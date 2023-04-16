@@ -32,16 +32,16 @@ using FsmActionResult = std::variant<FsmActionStatus, FsmActionDuration>;
 template <typename State>
 class FsmAction {
 public:
-  State state;
-  std::vector<State> extras;
+  State *state;
+  std::vector<State *> extras;
 
   float timer;
 
   std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;
-  FsmAction(State state, std::initializer_list<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
-  FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result = nullptr);
+  FsmAction(State *state, std::initializer_list<State *> extras, std::function<FsmActionResult()> fn_result = nullptr);
+  FsmAction(State *state, std::vector<State *> extras, std::function<FsmActionResult()> fn_result = nullptr);
 
   // Copy constructor
   FsmAction(const FsmAction &other);
@@ -50,67 +50,49 @@ public:
 
   template <typename T>
   auto OnEnter(T &owner) -> void {
-    if constexpr (std::is_pointer_v<State>) {
-      fsm_assert_msg(state, "State is null!");
-      if (state)
-        state->OnEnter(owner);
-      for (auto &ex : extras) {
-        fsm_assert_msg(ex, "State (ex) is null!");
-        if (ex)
-          ex->OnEnter(owner);
-      }
-    } else {
-      state.OnEnter(owner);
-      for (auto &e : extras)
-        e.OnEnter(owner);
+    fsm_assert_msg(state, "State is null!");
+    if (state)
+      state->OnEnter(owner);
+    for (auto &ex : extras) {
+      fsm_assert_msg(ex, "State (ex) is null!");
+      if (ex)
+        ex->OnEnter(owner);
     }
   }
 
   template <typename T>
   auto OnExit(T &owner) -> void {
-    if constexpr (std::is_pointer_v<State>) {
-      fsm_assert_msg(state, "State is null!");
-      if (state)
-        state->OnExit(owner);
-      for (auto &ex : extras) {
-        fsm_assert_msg(ex, "State (ex) is null!");
-        if (ex)
-          ex->OnExit(owner);
-      }
-    } else {
-      state.OnExit(owner);
-      for (auto &e : extras)
-        e.OnExit(owner);
+    fsm_assert_msg(state, "State is null!");
+    if (state)
+      state->OnExit(owner);
+    for (auto &ex : extras) {
+      fsm_assert_msg(ex, "State (ex) is null!");
+      if (ex)
+        ex->OnExit(owner);
     }
     timer = 0;
   }
 
   template <typename T>
   auto OnUpdate(T &owner) -> void {
-    if constexpr (std::is_pointer_v<State>) {
-      fsm_assert_msg(state, "State is null!");
-      if (state)
-        state->OnUpdate(owner);
-      for (auto &ex : extras) {
-        fsm_assert_msg(ex, "State (ex) is null!");
-        if (ex)
-          ex->OnUpdate(owner);
-      }
-    } else {
-      state.OnUpdate(owner);
-      for (auto &e : extras)
-        e.OnUpdate(owner);
+    fsm_assert_msg(state, "State is null!");
+    if (state)
+      state->OnUpdate(owner);
+    for (auto &ex : extras) {
+      fsm_assert_msg(ex, "State (ex) is null!");
+      if (ex)
+        ex->OnUpdate(owner);
     }
   }
 };
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::initializer_list<State> extras,
+FsmAction<State>::FsmAction(State *state, std::initializer_list<State *> extras,
                             std::function<FsmActionResult()> fn_result)
     : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
-FsmAction<State>::FsmAction(State state, std::vector<State> extras, std::function<FsmActionResult()> fn_result)
+FsmAction<State>::FsmAction(State *state, std::vector<State *> extras, std::function<FsmActionResult()> fn_result)
     : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
 
 template <typename State>
@@ -131,11 +113,12 @@ auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
 template <typename T, typename State>
 class Fsm {
 public:
-  T owner;
+  T *owner;
   std::unordered_map<std::string, std::vector<FsmAction<State>>> actions;
   std::string current_binding;
   std::string previous_binding;
 
+  State *current_state;
   FsmAction<State> current_action;
   FsmTransition *current_transition = nullptr;
 
@@ -144,7 +127,7 @@ public:
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
   Fsm() = default;
-  Fsm(T owner);
+  Fsm(T *owner);
   ~Fsm();
 
 private:
@@ -181,7 +164,7 @@ public:
 };
 
 template <typename T, typename State>
-Fsm<T, State>::Fsm(T owner) : owner(owner) {}
+Fsm<T, State>::Fsm(T *owner) : owner(owner) {}
 
 template <typename T, typename State>
 Fsm<T, State>::~Fsm() {
@@ -265,6 +248,7 @@ auto Fsm<T, State>::FsmStart() -> void {
   if (print_log)
     fsm_log("action enter: " + current_binding);
   current_action.OnEnter(owner);
+  current_state = current_action.state;
 }
 
 template <typename T, typename State>
@@ -353,6 +337,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
 
           current_action.OnEnter(owner);
+          current_state = current_action.state;
           return;
         }
       }
@@ -406,6 +391,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
         }
 
         current_action.OnEnter(owner);
+        current_state = current_action.state;
       }
     } break;
     case 1: { // <-- FsmTransition *

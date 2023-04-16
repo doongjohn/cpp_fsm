@@ -13,7 +13,7 @@ class TestCharacter {
 
 public:
   inline static sol::state lua = LDJ::init_fsm_lua();
-  LDJ::Fsm<Self *, State *> *fsm;
+  LDJ::Fsm<Self, State> *fsm;
 
   inline static State *ex_hello = new TestStateEx();
 
