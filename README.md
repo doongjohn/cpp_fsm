@@ -8,14 +8,14 @@
 // `StateEx` inherits from `State` and runs in the same frame as `State`.
 auto ex_hello = new StateEx();
 
-LDJ::FsmAction<State *> action_default(state_default, {});
-LDJ::FsmAction<State *> action_hello(state_hello, {ex_hello});
-LDJ::FsmAction<State *> action_wow(state_wow, {});
-LDJ::FsmAction<State *> action_pow(state_pow, {});
-LDJ::FsmAction<State *> action_combo1(state_wow, {}, [] { return LDJ::Completed; });
-LDJ::FsmAction<State *> action_combo2(state_pow, {}, [] { return LDJ::Completed; });
+LDJ::FsmAction<State> action_default(state_default, {});
+LDJ::FsmAction<State> action_hello(state_hello, {ex_hello});
+LDJ::FsmAction<State> action_wow(state_wow, {});
+LDJ::FsmAction<State> action_pow(state_pow, {});
+LDJ::FsmAction<State> action_combo1(state_wow, {}, [] { return LDJ::Completed; });
+LDJ::FsmAction<State> action_combo2(state_pow, {}, [] { return LDJ::Completed; });
 
-fsm = new LDJ::Fsm<Self *, State *>(this);
+fsm = new LDJ::Fsm<Self, State>(this);
 auto tr1 = fsm->NewTransition("tr1");
 auto tr2 = fsm->NewTransition("tr2");
 

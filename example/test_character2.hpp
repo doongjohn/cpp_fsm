@@ -28,7 +28,7 @@ public:
 
   TestCharacter2() {
     fsm = LDJ::prepare_fsm_lua_instance<TestCharacter, TestStateBase, Self, State>(lua, this);
-    fsm->print_log = true;
+    fsm->b_print_log = true;
 
     LuaBindStates();
     LDJ::execute_fsm_lua(lua, "example/lua/character2.lua");

@@ -122,7 +122,7 @@ public:
   FsmAction<State> current_action;
   FsmTransition *current_transition = nullptr;
 
-  bool print_log = false;
+  bool b_print_log = false;
   std::function<void()> fn_err_excessive_transition = nullptr;
   std::function<void()> fn_err_no_possible_transition = nullptr;
 
@@ -245,7 +245,7 @@ template <typename T, typename State>
 auto Fsm<T, State>::FsmStart() -> void {
   fsm_assert_msg(current_transition != nullptr, "Must call the BindDefault() function before starting.");
   fsm_assert_msg(actions.contains("default"), "Must call the BindDefault() function before starting.");
-  if (print_log)
+  if (b_print_log)
     fsm_log("action enter: " + current_binding);
   current_action.OnEnter(owner);
   current_state = current_action.state;
@@ -271,7 +271,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
         fn_err_excessive_transition();
 
       // print trace
-      if (print_log) {
+      if (b_print_log) {
         fsm_log("transition trace: (from most recent)");
         for (const auto &trace : transition_trace)
           fsm_log(trace, "");
@@ -333,7 +333,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
           current_action_list_index += 1;
           current_action = current_action_list.value()[current_action_list_index];
 
-          if (print_log)
+          if (b_print_log)
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
 
           current_action.OnEnter(owner);
@@ -382,7 +382,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
         if (current_action.fn_result != nullptr)
           b_is_waiting = true;
 
-        if (print_log) {
+        if (b_print_log) {
           if (current_action_list.value().size() > 1) {
             fsm_log("action enter seq[0]: " + current_binding);
           } else {
