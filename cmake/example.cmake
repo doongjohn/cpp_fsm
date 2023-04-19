@@ -1,22 +1,3 @@
-# backward (stack trace printer)
-# https://github.com/bombela/backward-cpp
-if (UNIX AND NOT APPLE)
-  add_library(backward OBJECT
-    vendor/backward/backward.cpp)
-
-  target_compile_features(backward
-    PRIVATE cxx_std_20)
-
-  target_compile_options(backward
-    PRIVATE ${DEBUG_OPTIONS})
-
-  target_link_options(backward
-    PRIVATE ${DEBUG_OPTIONS})
-
-  target_compile_definitions(backward
-    PRIVATE BACKWARD_HAS_DW=1)
-endif()
-
 # example
 file(GLOB_RECURSE SRC_EXAMPLE example/*.cpp)
 add_executable(example ${SRC_EXAMPLE})
@@ -38,8 +19,6 @@ target_link_options(example
   $<$<CONFIG:Debug>:${DEBUG_OPTIONS}>)
 
 target_include_directories(example
-  PRIVATE ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src
-  PRIVATE ${PROJECT_SOURCE_DIR}/vendor
   PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 target_compile_definitions(example

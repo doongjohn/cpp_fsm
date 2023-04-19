@@ -34,9 +34,7 @@ class FsmAction {
 public:
   State *state;
   std::vector<State *> extras;
-
   float timer;
-
   std::function<FsmActionResult()> fn_result;
 
   FsmAction() = default;

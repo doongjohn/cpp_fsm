@@ -23,7 +23,7 @@ elseif (UNIX AND NOT APPLE)
   set(RELEASE_OPTIONS
     -Wall
     -Wextra
-    -flto
+    # -flto
   )
 endif()
 
@@ -38,6 +38,28 @@ elseif (UNIX AND NOT APPLE)
     -fsanitize=address,undefined
   )
 endif()
+
+if (UNIX AND NOT APPLE)
+  # backward (stack trace pretty printer)
+  # https://github.com/bombela/backward-cpp
+  add_library(backward STATIC
+    vendor/backward/backward.cpp)
+
+  target_compile_features(backward
+    PRIVATE cxx_std_20)
+
+  target_compile_options(backward
+    PRIVATE ${DEBUG_OPTIONS})
+
+  target_link_options(backward
+    PRIVATE ${DEBUG_OPTIONS})
+
+  target_compile_definitions(backward
+    PRIVATE BACKWARD_HAS_DW=1)
+endif()
+
+# LuaJIT
+add_subdirectory(vendor/LuaJIT)
 
 include(cmake/fsm.cmake)
 include(cmake/example.cmake)
