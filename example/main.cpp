@@ -1,14 +1,11 @@
 #include <thread>
 
-#define SOL_PRINT_ERRORS 1
-#include <sol/sol.hpp>
-
 #include "test_character1.hpp"
 #include "test_character2.hpp"
 
 class FsmLuaBinder {
 public:
-  static auto Init() -> int {
+  static auto Bind() -> int {
     LDJ::prepare_fsm_lua_base<TestCharacter, TestStateBase>(TestCharacter::lua);
     TestCharacter1::LuaBindMembers(TestCharacter::lua);
     TestCharacter2::LuaBindMembers(TestCharacter::lua);
@@ -16,7 +13,7 @@ public:
     return 0;
   }
 
-  inline static int init = FsmLuaBinder::Init();
+  inline static int init = FsmLuaBinder::Bind();
 };
 
 auto main() -> int {
@@ -38,8 +35,9 @@ auto main() -> int {
   }
   // game loop
   while (true) {
+    std::cout << "---\n";
     for (size_t i = 0; i < characters.size(); ++i) {
-      std::cout << "character " << i << " ";
+      std::cout << "character " << i << "\n";
       characters[i]->fsm->FsmUpdate(1);
       characters[i]->fsm->Update();
     }

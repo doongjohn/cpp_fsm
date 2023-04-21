@@ -48,38 +48,26 @@ public:
 
   template <typename T>
   auto OnEnter(T &owner) -> void {
-    fsm_assert_msg(state, "State is null!");
-    if (state)
-      state->OnEnter(owner);
+    state->OnEnter(owner);
     for (auto &ex : extras) {
-      fsm_assert_msg(ex, "State (ex) is null!");
-      if (ex)
-        ex->OnEnter(owner);
+      ex->OnEnter(owner);
     }
   }
 
   template <typename T>
   auto OnExit(T &owner) -> void {
-    fsm_assert_msg(state, "State is null!");
-    if (state)
-      state->OnExit(owner);
+    state->OnExit(owner);
     for (auto &ex : extras) {
-      fsm_assert_msg(ex, "State (ex) is null!");
-      if (ex)
-        ex->OnExit(owner);
+      ex->OnExit(owner);
     }
     timer = 0;
   }
 
   template <typename T>
   auto OnUpdate(T &owner) -> void {
-    fsm_assert_msg(state, "State is null!");
-    if (state)
-      state->OnUpdate(owner);
+    state->OnUpdate(owner);
     for (auto &ex : extras) {
-      fsm_assert_msg(ex, "State (ex) is null!");
-      if (ex)
-        ex->OnUpdate(owner);
+      ex->OnUpdate(owner);
     }
   }
 };
@@ -87,15 +75,30 @@ public:
 template <typename State>
 FsmAction<State>::FsmAction(State *state, std::initializer_list<State *> extras,
                             std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {
+  fsm_assert_msg(state, "State is null!");
+  for (auto &ex : extras) {
+    fsm_assert_msg(ex, "State (ex) is null!");
+  }
+}
 
 template <typename State>
 FsmAction<State>::FsmAction(State *state, std::vector<State *> extras, std::function<FsmActionResult()> fn_result)
-    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {}
+    : state(state), extras(std::move(extras)), timer(0), fn_result(std::move(fn_result)) {
+  fsm_assert_msg(state, "State is null!");
+  for (auto &ex : extras) {
+    fsm_assert_msg(ex, "State (ex) is null!");
+  }
+}
 
 template <typename State>
 FsmAction<State>::FsmAction(const FsmAction &other)
-    : state(other.state), extras(other.extras), timer(other.timer), fn_result(other.fn_result) {}
+    : state(other.state), extras(other.extras), timer(other.timer), fn_result(other.fn_result) {
+  fsm_assert_msg(state, "State is null!");
+  for (auto &ex : extras) {
+    fsm_assert_msg(ex, "State (ex) is null!");
+  }
+}
 
 template <typename State>
 auto FsmAction<State>::operator=(const FsmAction &other) -> FsmAction & {
@@ -245,8 +248,8 @@ auto Fsm<T, State>::FsmStart() -> void {
   fsm_assert_msg(actions.contains("default"), "Must call the BindDefault() function before starting.");
   if (b_print_log)
     fsm_log("action enter: " + current_binding);
-  current_action.OnEnter(owner);
   current_state = current_action.state;
+  current_action.OnEnter(owner);
 }
 
 template <typename T, typename State>
@@ -334,8 +337,8 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
           if (b_print_log)
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
 
-          current_action.OnEnter(owner);
           current_state = current_action.state;
+          current_action.OnEnter(owner);
           return;
         }
       }
@@ -361,7 +364,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
       // get next binding
       std::string next_binding = std::get<0>(next);
       if (!actions.contains(next_binding)) {
-        fsm_assert_msg(false, "Unbound action: \"" + next_binding + "\"");
+        fsm_assert_msg(false, "Unbound action: " + current_transition->GetName() + " -> \"" + next_binding + "\"");
         return;
       }
 
@@ -388,8 +391,8 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
           }
         }
 
-        current_action.OnEnter(owner);
         current_state = current_action.state;
+        current_action.OnEnter(owner);
       }
     } break;
     case 1: { // <-- FsmTransition *

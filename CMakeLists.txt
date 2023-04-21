@@ -61,5 +61,6 @@ endif()
 # LuaJIT
 add_subdirectory(vendor/LuaJIT)
 
+add_compile_definitions(SOL_PRINT_ERRORS=1)
 include(cmake/fsm.cmake)
 include(cmake/example.cmake)

@@ -1,5 +1,6 @@
 local fsm = Fsm
 local owner = Owner
+
 print(owner.name)
 print('power = ' .. tostring(owner.power))
 
