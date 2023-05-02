@@ -230,14 +230,12 @@ auto Fsm<T, State>::Reenter(std::string binding) -> std::string {
 
 template <typename T, typename State>
 auto Fsm<T, State>::SkipCurrent(std::string binding) -> std::string {
-  b_is_waiting = false;
   b_skip_waiting = true;
   return binding;
 }
 
 template <typename T, typename State>
 auto Fsm<T, State>::SkipCurrent(FsmTransition *transition) -> FsmTransition * {
-  b_is_waiting = false;
   b_skip_waiting = true;
   return transition;
 }
@@ -254,7 +252,7 @@ auto Fsm<T, State>::FsmStart() -> void {
 
 template <typename T, typename State>
 auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
-  // increment timer
+  // increment action timer
   float current_timer = current_action.timer;
   current_action.timer += delta_time;
 
@@ -264,13 +262,9 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
   while (b_check_next_transition) {
     b_check_next_transition = false;
 
-    // check transition count
+    // check excessive transition
     cur_transition_count += 1;
     if (cur_transition_count > max_transition_count) {
-      // run error callback
-      if (fn_err_excessive_transition)
-        fn_err_excessive_transition();
-
       // print trace
       if (b_print_log) {
         fsm_log("transition trace: (from most recent)");
@@ -278,7 +272,12 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
           fsm_log(trace, "");
       }
 
-      fsm_assert_msg(false, "Excessive transition detected.");
+      if (fn_err_excessive_transition) {
+        // run error callback
+        fn_err_excessive_transition();
+      } else {
+        fsm_assert_msg(false, "Excessive transition detected.");
+      }
       return;
     }
 
@@ -290,14 +289,17 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
     // get next transition result
     std::optional<FsmTransitionResult> opt_next = current_transition->RunTransitionLogic(current_binding);
     if (!opt_next.has_value()) {
-      // run error callback
-      if (fn_err_no_possible_transition)
+      if (fn_err_no_possible_transition) {
+        if (b_print_log)
+          fsm_log("No transition is possible from the current binding : \"" + current_binding + "\"");
+        // run error callback
         fn_err_no_possible_transition();
-
-      fsm_assert_msg(false, "No transition is possible from the current binding : \"" + current_binding + "\"");
+      } else {
+        fsm_assert_msg(false, "No transition is possible from the current binding : \"" + current_binding + "\"");
+      }
       return;
     }
-    auto next = opt_next.value();
+    FsmTransitionResult next = opt_next.value();
 
     // get current action status
     std::optional<FsmActionStatus> action_status = std::nullopt;
@@ -315,24 +317,32 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
     }
 
     // check current action is ended
-    if (action_status.has_value() && action_status != Running)
+    if (action_status != Running)
       b_is_waiting = false;
+
+    // skip waiting
+    if (b_skip_waiting) {
+      b_skip_waiting = false;
+      b_is_waiting = false;
+      current_action_list_index = 0;
+      current_action_list = std::nullopt;
+    }
 
     // wait for an action to end
     if (b_is_waiting)
       return;
 
-    // sequenced action
-    if (!b_skip_waiting && current_action_list && action_status.has_value()) {
-      if (action_status == Completed) {
-        current_action.OnExit(owner);
+    if (current_action_list && action_status.has_value()) {
+      // sequenced action
+      if (current_action_list.value().size() > 1) {
+        bool b_is_sequence_has_next_state = current_action_list.value().size() > current_action_list_index + 1;
+        if (action_status == Completed && b_is_sequence_has_next_state) {
+          current_action.OnExit(owner);
 
-        if (current_action_list.value().size() > 1 &&
-            current_action_list.value().size() > current_action_list_index + 1) {
           // run next action
-          b_is_waiting = true;
           current_action_list_index += 1;
           current_action = current_action_list.value()[current_action_list_index];
+          b_is_waiting = true;
 
           if (b_print_log)
             fsm_log("action enter seq[" + std::to_string(current_action_list_index) + "]: " + current_binding);
@@ -341,22 +351,16 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
           current_action.OnEnter(owner);
           return;
         }
-      }
 
-      if (current_action_list.value().size() > 1 && action_status != Running) {
-        // sequence ended
-        b_is_waiting = false;
-        current_action_list_index = 0;
-        current_action_list = std::nullopt;
-        b_check_next_transition = true;
-        continue;
+        if (action_status != Running) {
+          // sequence ended
+          b_is_waiting = false;
+          current_action_list_index = 0;
+          current_action_list = std::nullopt;
+          b_check_next_transition = true;
+          continue;
+        }
       }
-    }
-
-    if (b_skip_waiting) {
-      b_skip_waiting = false;
-      current_action_list_index = 0;
-      current_action_list = std::nullopt;
     }
 
     switch (next.index()) {
@@ -402,6 +406,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
       if (transition) {
         // update transition trace
         transition_trace.front() += " -> " + transition->GetName();
+
         // change transition
         current_transition = transition;
         // check next transition
