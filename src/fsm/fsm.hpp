@@ -398,6 +398,7 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
     case 1: { // <-- FsmTransition *
       // get next transition
       FsmTransition *transition = std::get<1>(next);
+      // `transition == nullptr` means `FsmContinue`
       if (transition) {
         // update transition trace
         transition_trace.front() += " -> " + transition->GetName();
@@ -406,7 +407,6 @@ auto Fsm<T, State>::FsmUpdate(float delta_time) -> void {
         // check next transition
         b_check_next_transition = true;
       }
-      // FsmContinue
     } break;
     }
   }

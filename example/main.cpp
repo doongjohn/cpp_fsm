@@ -34,14 +34,17 @@ auto main() -> int {
     characters[i]->fsm->FsmStart();
   }
   // game loop
+  int tick = 0;
   while (true) {
     std::cout << "---\n";
+    std::cout << "tick " << tick << '\n';
     for (size_t i = 0; i < characters.size(); ++i) {
       std::cout << "character " << i << "\n";
       characters[i]->fsm->FsmUpdate(1);
       characters[i]->fsm->Update();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    tick += 1;
   }
 
   return 0;
