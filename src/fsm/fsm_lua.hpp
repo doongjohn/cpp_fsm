@@ -8,7 +8,8 @@ namespace LDJ {
 
 inline auto init_fsm_lua() -> sol::state {
   sol::state lua;
-  lua.open_libraries(sol::lib::base, sol::lib::string, sol::lib::math);
+  lua.open_libraries(sol::lib::base, sol::lib::debug, sol::lib::package, sol::lib::table, sol::lib::string,
+                     sol::lib::math);
 
   // Lua binding: fsm_log
   lua["log"] = sol::overload(&fsm_log, [](const std::string &msg) { fsm_log(msg, "[FSM Lua] "); });
