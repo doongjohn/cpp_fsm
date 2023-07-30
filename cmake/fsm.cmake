@@ -1,23 +1,24 @@
+# object file
+# https://stackoverflow.com/a/68406028
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+add_library(cpp_fsm_obj OBJECT "")
+
 # file(GLOB_RECURSE SRC_LUA vendor/lua-5.4.4/src/*.c)
 # list(REMOVE_ITEM SRC_LUA
 #   ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src/lua.c
 #   ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src/luac.c)
 
-# object file
-# https://stackoverflow.com/a/68406028
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 file(GLOB_RECURSE SRC_FSM src/fsm/*.cpp)
-add_library(cpp_fsm_obj OBJECT
-  ${SRC_LUA}
-  ${SRC_FSM})
+target_sources(cpp_fsm_obj
+  PRIVATE
+    ${SRC_LUA}
+    ${SRC_FSM})
 
 target_compile_features(cpp_fsm_obj
   PUBLIC cxx_std_20)
 
 target_link_libraries(cpp_fsm_obj
-  PUBLIC libluajit
-  PUBLIC $<$<CONFIG:Debug>:dw>
-  PUBLIC $<$<CONFIG:Debug>:backward>)
+  PUBLIC libluajit)
 
 if (MSVC)
   # https://stackoverflow.com/a/13309747
@@ -25,6 +26,10 @@ if (MSVC)
 elseif (UNIX AND NOT APPLE)
   # https://stackoverflow.com/a/31509007
   set(PIC_OPTION -fPIC)
+
+  target_link_libraries(cpp_fsm_obj
+    PUBLIC $<$<CONFIG:Debug>:dw>
+    PUBLIC $<$<CONFIG:Debug>:backward>)
 endif()
 
 target_compile_options(cpp_fsm_obj
@@ -41,7 +46,7 @@ target_link_options(cpp_fsm_obj
 
 target_include_directories(cpp_fsm_obj
   # PUBLIC ${PROJECT_SOURCE_DIR}/vendor/lua-5.4.4/src
-  PUBLIC ${PROJECT_SOURCE_DIR}/vendor/LuaJIT/src
+  PUBLIC ${PROJECT_SOURCE_DIR}/vendor/LuaJIT-2.1/src
   PUBLIC ${PROJECT_SOURCE_DIR}/vendor)
 
 target_compile_definitions(cpp_fsm_obj

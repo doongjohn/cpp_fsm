@@ -17,6 +17,7 @@ project(cpp_fsm
   LANGUAGES C CXX
 )
 
+# release options
 if (MSVC)
   set(RELEASE_OPTIONS)
 elseif (UNIX AND NOT APPLE)
@@ -27,6 +28,7 @@ elseif (UNIX AND NOT APPLE)
   )
 endif()
 
+# debug options
 if (MSVC)
   set(DEBUG_OPTIONS)
 elseif (UNIX AND NOT APPLE)
@@ -39,9 +41,9 @@ elseif (UNIX AND NOT APPLE)
   )
 endif()
 
+# backward (stack trace pretty printer)
+# https://github.com/bombela/backward-cpp
 if (UNIX AND NOT APPLE)
-  # backward (stack trace pretty printer)
-  # https://github.com/bombela/backward-cpp
   add_library(backward STATIC
     vendor/backward/backward.cpp)
 
@@ -58,8 +60,8 @@ if (UNIX AND NOT APPLE)
     PRIVATE BACKWARD_HAS_DW=1)
 endif()
 
-# LuaJIT
-add_subdirectory(vendor/LuaJIT)
+# LuaJIT-2.1
+add_subdirectory(vendor/LuaJIT-2.1)
 
 add_compile_definitions(SOL_PRINT_ERRORS=1)
 include(cmake/fsm.cmake)
