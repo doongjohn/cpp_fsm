@@ -60,7 +60,7 @@ if (UNIX AND NOT APPLE)
     PRIVATE BACKWARD_HAS_DW=1)
 endif()
 
-# LuaJIT-2.1
+# LuaJIT-2.1: https://github.com/WohlSoft/LuaJIT/tree/v2.1
 add_subdirectory(vendor/LuaJIT-2.1)
 
 add_compile_definitions(SOL_PRINT_ERRORS=1)
