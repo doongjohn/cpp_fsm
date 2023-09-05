@@ -42,6 +42,7 @@ elseif (UNIX AND NOT APPLE)
 endif()
 
 # LuaJIT-2.1: https://github.com/WohlSoft/LuaJIT/tree/v2.1
+set(LUAJIT_FORCE_UTF8_FOPEN ON)
 add_subdirectory(vendor/LuaJIT-2.1)
 
 add_compile_definitions(SOL_PRINT_ERRORS=1)
