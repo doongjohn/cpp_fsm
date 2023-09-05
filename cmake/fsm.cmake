@@ -26,10 +26,6 @@ if (MSVC)
 elseif (UNIX AND NOT APPLE)
   # https://stackoverflow.com/a/31509007
   set(PIC_OPTION -fPIC)
-
-  target_link_libraries(cpp_fsm_obj
-    PUBLIC $<$<CONFIG:Debug>:dw>
-    PUBLIC $<$<CONFIG:Debug>:backward>)
 endif()
 
 target_compile_options(cpp_fsm_obj

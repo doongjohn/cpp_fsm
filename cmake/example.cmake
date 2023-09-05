@@ -31,7 +31,5 @@ elseif (UNIX AND NOT APPLE)
   target_compile_options(example
     PRIVATE -Wno-unused-parameter)
   target_link_libraries(example
-    PRIVATE cpp_fsm_shared
-    PRIVATE $<$<CONFIG:Debug>:dw>
-    PRIVATE $<$<CONFIG:Debug>:backward>)
+    PRIVATE cpp_fsm_shared)
 endif()

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.5)
 
 set(LJ_CROSSCOMPILING OFF)
 if (NOT ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "${CMAKE_SYSTEM_NAME}"))
@@ -11,6 +11,7 @@ set(CMAKE_CROSSCOMPILING ${LJ_CROSSCOMPILING} CACHE BOOL "Cross-compiling")
 set(LUAJIT_DISABLE_FFI OFF CACHE BOOL "Permanently disable the FFI extension")
 set(LUAJIT_DISABLE_JIT OFF CACHE BOOL "Disable the JIT compiler")
 set(LUAJIT_NO_UNWIND OFF CACHE BOOL "Disable the UNWIND")
+set(LUAJIT_BUILD_TOOL ON CACHE BOOL "Build the executable of LuaJIT")
 set(LUAJIT_NUMMODE 0 CACHE STRING
 "Specify the number mode to use. Possible values:
   0 - Default mode
@@ -25,6 +26,20 @@ if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
   set(MINILUA_EXE minilua.exe)
 endif()
 set(MINILUA_PATH ${CMAKE_CURRENT_BINARY_DIR}/minilua/${MINILUA_EXE})
+
+if (MSVC)
+  # Workaround to avoid placing of executables into Debug/Release sub-directories
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
+endif()
+
+if (NINTENDO_DS OR NINTENDO_3DS OR NINTENDO_WII OR NINTENDO_WII_U OR NINTENDO_SWITCH OR VITA)
+  unset(LUAJIT_DISABLE_FFI)
+  unset(LUAJIT_DISABLE_JIT)
+  set(LUAJIT_DISABLE_FFI ON CACHE BOOL "" FORCE)
+  set(LUAJIT_DISABLE_JIT ON CACHE BOOL "" FORCE)
+  set(LUAJIT_BUILD_TOOL OFF CACHE BOOL "" FORCE)
+endif()
 
 # Build the minilua for host platform
 if (NOT CMAKE_CROSSCOMPILING)
@@ -56,6 +71,11 @@ detect_architecture(LJ_DETECTED_ARCH)
 include(DetectFPUApi)
 detect_fpu_mode(LJ_DETECTED_FPU_MODE)
 detect_fpu_abi(LJ_DETECTED_FPU_ABI)
+
+include(CheckIncludeFile)
+if(NOT WIN32)
+    check_include_file("sys/mman.h" LJ_DETECTED_SYS_MMAN_H)
+endif()
 
 find_library(LIBM_LIBRARIES NAMES m)
 find_library(LIBDL_LIBRARIES NAMES dl)
@@ -252,6 +272,10 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Haiku")
   set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_POSIX)
 elseif ("${CMAKE_SYSTEM_NAME}" MATCHES "(Open|Free|Net)BSD")
   set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD)
+elseif (VITA)
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OTHER -DLJ_TARGET_PSVITA=1)
+elseif ("${CMAKE_SYSTEM_NAME}" MATCHES "Nintendo(DS|3DS|Wii|WiiU|Switch)")
+  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLJ_TARGET_NX -DLUAJIT_OS=LUAJIT_OS_OTHER -DLUAJIT_SECURITY_PRNG=0)
 else()
   set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OTHER)
 endif()
@@ -295,6 +319,10 @@ endif()
 if (LUAJIT_ENABLE_GDBJIT)
   set(LJ_DEFINITIONS ${LJ_DEFINITIONS} -DLUAJIT_ENABLE_GDBJIT)
   set(TARGET_ARCH ${TARGET_ARCH} -DLUAJIT_ENABLE_GDBJIT)
+endif()
+
+if (NOT WIN32 AND NOT LJ_DETECTED_SYS_MMAN_H)
+  set(LJ_DEFINITIONS ${LJ_DEFINITIONS} -DLUAJIT_USE_SYSMALLOC)
 endif()
 
 set(VM_DASC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/vm_${DASM_ARCH}.dasc)
@@ -516,7 +544,7 @@ if (BUILD_SHARED_LIBS)
 endif()
 
 if (MSVC)
-  set_target_properties(libluajit PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_target_properties(libluajit PROPERTIES LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
 endif()
 
 if(LIBM_LIBRARIES)
@@ -525,6 +553,11 @@ endif()
 
 if (LIBDL_LIBRARIES)
   target_link_libraries(libluajit ${LIBDL_LIBRARIES})
+endif()
+
+if (VITA)
+  target_compile_definitions(libluajit PRIVATE -DsceRandomGetRandomNumber=sceKernelGetRandomNumber)
+  target_link_libraries(libluajit SceLibKernel_stub)
 endif()
 
 set(LJ_DEFINITIONS ${LJ_DEFINITIONS} -DLUA_MULTILIB="${LUA_MULTILIB}")
@@ -547,19 +580,21 @@ endif()
 
 target_compile_options(libluajit PRIVATE ${LJ_COMPILE_OPTIONS})
 
-# Build the luajit binary
-add_executable(luajit luajit.c)
-target_link_libraries(luajit libluajit)
-if (APPLE AND LJ_64 AND NOT LUAJIT_ENABLE_GC64)
-  target_link_libraries(luajit "-pagezero_size 10000" "-image_base 100000000")
-endif()
-if ("${CMAKE_SYSTEM_NAME}" MATCHES "(Open|Free|Net)BSD")
-  target_link_libraries(luajit c++abi pthread)
-endif()
-target_compile_definitions(luajit PRIVATE ${LJ_DEFINITIONS})
+if (LUAJIT_BUILD_TOOL)
+  # Build the luajit binary
+  add_executable(luajit luajit.c)
+  target_link_libraries(luajit libluajit)
+  if (APPLE AND LJ_64 AND NOT LUAJIT_ENABLE_GC64)
+    target_link_libraries(luajit "-pagezero_size 10000" "-image_base 100000000")
+  endif()
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "(Open|Free|Net)BSD")
+    target_link_libraries(luajit c++abi pthread)
+  endif()
+  target_compile_definitions(luajit PRIVATE ${LJ_DEFINITIONS})
 
-if (MSVC)
-  set_target_properties(luajit PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  if (MSVC)
+    set_target_properties(luajit PROPERTIES RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
+  endif()
 endif()
 
 set(luajit_headers lauxlib.h lua.h luaconf.h luajit.h lualib.h)
@@ -568,4 +603,6 @@ install(TARGETS libluajit
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(TARGETS luajit DESTINATION "${CMAKE_INSTALL_BINDIR}")
+if (LUAJIT_BUILD_TOOL)
+  install(TARGETS luajit DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif()

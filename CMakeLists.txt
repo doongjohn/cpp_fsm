@@ -41,25 +41,6 @@ elseif (UNIX AND NOT APPLE)
   )
 endif()
 
-# backward (stack trace pretty printer)
-# https://github.com/bombela/backward-cpp
-if (UNIX AND NOT APPLE)
-  add_library(backward STATIC
-    vendor/backward/backward.cpp)
-
-  target_compile_features(backward
-    PRIVATE cxx_std_20)
-
-  target_compile_options(backward
-    PRIVATE ${DEBUG_OPTIONS})
-
-  target_link_options(backward
-    PRIVATE ${DEBUG_OPTIONS})
-
-  target_compile_definitions(backward
-    PRIVATE BACKWARD_HAS_DW=1)
-endif()
-
 # LuaJIT-2.1: https://github.com/WohlSoft/LuaJIT/tree/v2.1
 add_subdirectory(vendor/LuaJIT-2.1)
 

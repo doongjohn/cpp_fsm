@@ -12,3 +12,7 @@
 
 #cmake
 /build/
+/build-*/
+
+#Mac OS junk
+.DS_Store
